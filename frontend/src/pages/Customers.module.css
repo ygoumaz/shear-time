@@ -1,0 +1,191 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100vh; /* Prevents global scrolling */
+    overflow: hidden; /* Removes main scrollbar */
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Ensures button on left, title centered */
+    padding: 15px 20px;
+    background-color: #f8f9fa; /* Light background */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for better visibility */
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+#backBtn {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #98999a;
+    color: white;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#backBtn:hover {
+    background-color: #7d7e7f;
+}
+
+.pageTitle {
+    font-size: 1.8em;
+    color: #333;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.customerList {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px;
+    height: calc(100vh - 150px);
+    overflow: hidden; /* No global scrolling */
+}
+
+.leftPanel {
+    width: 25%;
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f5f5f5;
+    padding: 10px;
+    padding-bottom: 30px;
+}
+
+.rightPanel {
+    width: 75%;
+    height: calc(100vh - 150px);
+    background-color: #dedada;
+    border-radius: 5px;
+    padding: 10px;
+    padding-top: 0;
+    overflow-y: auto; /* Local scrolling */
+}
+
+.newCustomerForm {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+    margin-top: 18px;
+}
+
+.newCustomerForm input {
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+.newCustomerForm button {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 7px;
+}
+
+.newCustomerForm button:hover {
+    background-color: #0056b3;
+}
+
+.newCustomerForm button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.panelTitle {
+    font-size: 1.5em;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.customerTable {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    overflow: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+    overflow-y: auto;
+}
+
+.customerTable th, 
+.customerTable td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+.customerTable th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+    color: #333;
+}
+
+.customerTable td {
+    cursor: pointer;
+}
+
+.customerTable td:last-child {
+    text-align: right;
+    width: 10%;
+    cursor: default;
+}
+
+.editInput {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.customerRow:hover {
+    background-color: #f9f9f9;
+}
+
+.deleteBtn {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background 0.3s ease;
+}
+
+.deleteBtn:hover {
+    background-color: #cc0000;
+}
+
+/* Responsive Fix for Smaller Screens */
+@media (max-width: 768px) {
+    .customerList {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .leftPanel, .rightPanel {
+        width: 90%;
+    }
+
+    .pageTitle {
+        font-size: 1.5em;
+    }
+}
