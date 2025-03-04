@@ -22,7 +22,7 @@ logs/
 *.lock
 
 # Configurations et secrets
-config.py
+# config.py
 secrets.json
 
 # Déploiement (Docker, PyCharm, VS Code, etc.)
