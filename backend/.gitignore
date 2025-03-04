@@ -1,0 +1,37 @@
+# Environnements virtuels (venv, virtualenv, etc.)
+venv/
+.env
+*.env
+
+# Dépendances installées
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Bases de données locales
+instance/
+*.db
+*.sqlite3
+
+# Logs et fichiers temporaires
+logs/
+*.log
+*.pid
+*.seed
+*.lock
+
+# Configurations et secrets
+config.py
+secrets.json
+
+# Déploiement (Docker, PyCharm, VS Code, etc.)
+*.swp
+.DS_Store
+.vscode/
+.idea/
+*.bak
+*.orig
+
+# Si tu utilises Jupyter Notebooks
+.ipynb_checkpoints/
