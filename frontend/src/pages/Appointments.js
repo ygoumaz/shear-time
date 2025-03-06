@@ -35,16 +35,20 @@ const Appointments = () => {
     const navigate = useNavigate();
 
     const fetchAppointments = async () => {
+        setLoading(true);
         try {
             const fetchedAppointments = await getAppointments();
             setAppointments(fetchedAppointments);
         } catch (error) {
             console.error("Error fetching appointments:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true);
             try {
                 const [fetchedAppointments, fetchedCustomers] = await Promise.all([
                     getAppointments(),
@@ -54,6 +58,8 @@ const Appointments = () => {
                 setCustomers(fetchedCustomers);
             } catch (error) {
                 console.error("Error fetching data:", error);
+            } finally {
+                setLoading(false);
             }
         };
         fetchData();
@@ -258,7 +264,12 @@ const Appointments = () => {
                 </div>
             )}
             {modal.open && <Modal type={modal.type} message={modal.message} onClose={() => setModal({ open: false, message: "", onConfirm: null })} onConfirm={modal.onConfirm} />}
-
+            {loading && (
+                <div className={styles.loadingOverlay}>
+                    <div className={styles.loader}></div>
+                    <p>Chargement...</p>
+                </div>
+            )}
         </div>
     );
 };
