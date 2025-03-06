@@ -25,6 +25,7 @@ const Customers = () => {
     const navigate = useNavigate();
 
     const fetchCustomers = async () => {
+        setLoading(true);
         try {
             const fetchedCustomers = await getCustomers();
             console.log(fetchedCustomers);
@@ -32,6 +33,8 @@ const Customers = () => {
         } catch (error) {
             console.error("Error fetching customers:", error);
             setModal({ open: true, message: "Erreur lors de la récupération des clients.", onConfirm: null });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -237,6 +240,12 @@ const Customers = () => {
                 </div>
             </div>
             {modal.open && <Modal type={modal.type} message={modal.message} customerData={modal.customerData} onClose={() => setModal({ open: false, message: "", onConfirm: null })} onConfirm={modal.onConfirm} />}
+            {loading && (
+                <div className={styles.loadingOverlay}>
+                    <div className={styles.loader}></div>
+                    <p>Chargement...</p>
+                </div>
+            )}
         </div>
     );
 };
