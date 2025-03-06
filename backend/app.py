@@ -1,21 +1,24 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from config import Config
 from models import db
-
-
-app = Flask(__name__)
-app.config.from_object(Config)
-CORS(app)  # Allow React frontend to call API
-
-db.init_app(app)
-
-# Register API routes
+from config import Config
 from routes import api_blueprint
-app.register_blueprint(api_blueprint)
 
-if __name__ == '__main__':
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
+
+    db.init_app(app)
+
     with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+        db.create_all()  # Ensures tables exist
+
+    CORS(app)  # Enable CORS for all routes
+
+    app.register_blueprint(api_blueprint)
+
+    return app
+
+if __name__ == "__main__":
+    app = create_app()
+    app.run(host="0.0.0.0", port=5000)
