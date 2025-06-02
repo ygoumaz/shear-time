@@ -168,7 +168,7 @@ const Appointments = () => {
         } catch (error) {
             console.error("Error updating appointment:", error);
             alert("Erreur lors de la mise à jour du rendez-vous.");
-            info.revert(); // Revert event if update fails
+            info.revert(); // Revert event if update fails 
         }
     }
 
