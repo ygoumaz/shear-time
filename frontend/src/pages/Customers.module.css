@@ -1,8 +1,8 @@
 html, body {
     margin: 0;
     padding: 0;
-    height: 100vh; /* Prevents global scrolling */
-    overflow: hidden; /* Removes main scrollbar */
+    /* height: 100vh;  supprimé pour permettre le scroll */
+    /* overflow: hidden;  supprimé pour permettre le scroll */
 }
 
 .header {
@@ -179,14 +179,23 @@ html, body {
     .customerList {
         flex-direction: column;
         align-items: center;
+        gap: 10px;
+        padding: 10px;
+        height: auto;
     }
-
     .leftPanel, .rightPanel {
-        width: 90%;
+        width: 95vw;
+        min-width: unset;
+        max-width: unset;
+        height: auto;
+        padding: 5px;
     }
-
     .pageTitle {
-        font-size: 1.5em;
+        font-size: 1.2em;
+        text-align: left;
+    }
+    .newCustomerForm {
+        max-width: 100%;
     }
 }
 
