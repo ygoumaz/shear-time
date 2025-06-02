@@ -144,22 +144,24 @@
 /* Responsive Fix for Smaller Screens */
 @media (max-width: 768px) {
     .header {
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
-        padding: 10px 5px;
+        justify-content: space-between;
+        padding: 8px 8px;
     }
     .pageTitle {
-        font-size: 1.2em;
+        font-size: 1.1em;
         text-align: center;
         width: 100%;
-        margin-bottom: 8px;
+        margin-bottom: 0;
     }
     #customerBtn {
-        width: 80%;
-        max-width: 300px;
-        font-size: 1em;
-        margin: 0 auto 10px auto;
+        width: auto;
+        max-width: 140px;
+        font-size: 0.95em;
+        margin: 0 0 0 12px;
         display: block;
+        padding: 8px 12px;
     }
     .appointmentPanel {
         position: fixed;
