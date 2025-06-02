@@ -145,17 +145,21 @@
 @media (max-width: 768px) {
     .header {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
         padding: 10px 5px;
     }
     .pageTitle {
         font-size: 1.2em;
-        text-align: left;
+        text-align: center;
+        width: 100%;
+        margin-bottom: 8px;
     }
     #customerBtn {
-        width: 100%;
+        width: 80%;
+        max-width: 300px;
         font-size: 1em;
-        margin-top: 10px;
+        margin: 0 auto 10px auto;
+        display: block;
     }
     .appointmentPanel {
         position: fixed;
