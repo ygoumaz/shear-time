@@ -163,29 +163,29 @@
         display: block;
         padding: 8px 12px;
     }
-    /* Réduction de la taille des éléments FullCalendar sur mobile */
-    .fc-toolbar-title {
+    /* Réduction de la taille des éléments FullCalendar sur mobile (module CSS) */
+    :global(.fc-toolbar-title) {
         font-size: 1.1em !important;
     }
-    .fc-button {
+    :global(.fc-button) {
         font-size: 0.85em !important;
         padding: 4px 8px !important;
         height: 28px !important;
         min-width: 28px !important;
     }
-    .fc .fc-toolbar.fc-header-toolbar {
+    :global(.fc .fc-toolbar.fc-header-toolbar) {
         margin-bottom: 0.5em !important;
     }
-    .fc .fc-button-group {
+    :global(.fc .fc-button-group) {
         gap: 2px !important;
     }
-    .fc .fc-button-primary {
+    :global(.fc .fc-button-primary) {
         font-size: 0.85em !important;
     }
-    .fc .fc-daygrid-day-number {
+    :global(.fc .fc-daygrid-day-number) {
         font-size: 0.95em !important;
     }
-    .fc .fc-list-day-cushion {
+    :global(.fc .fc-list-day-cushion) {
         font-size: 1em !important;
         padding: 4px 0 !important;
     }
