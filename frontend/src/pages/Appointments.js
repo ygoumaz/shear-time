@@ -23,10 +23,7 @@ const Appointments = () => {
     
     const [showPanel, setShowPanel] = useState(false);
     const [panelPosition, setPanelPosition] = useState({ top: 100, left: 100 });
-
-    // Track if an event was just unselected to suppress popup
-    const [suppressDateClick, setSuppressDateClick] = useState(false);
-
+    
     const [modal, setModal] = useState({
         open: false,
         message: "",
@@ -102,18 +99,14 @@ const Appointments = () => {
     }
 
     const handleDateClick = useCallback((arg) => {
-        if (suppressDateClick) {
-            setSuppressDateClick(false);
-            return;
-        }
         const formattedDate = arg.dateStr.slice(0, 16);
         setNewAppointment({ ...newAppointment, date: formattedDate });
         setSelectedDate(formattedDate);
-
+        
         const panelPosition = computePanelPosition(arg.jsEvent);
         setPanelPosition(panelPosition);
         setShowPanel(true);
-    }, [suppressDateClick]);
+    }, []);
     
 
     const handleAddAppointment = async (e) => {
@@ -227,7 +220,6 @@ return (
                 hiddenDays={[0]}
                 allDaySlot={false}
                 height="auto"
-                unselect={() => setSuppressDateClick(true)}
             />
 
 
