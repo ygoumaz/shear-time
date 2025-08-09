@@ -117,10 +117,19 @@ const Appointments = () => {
             return;
         }
 
-        const durationInMinutes = (parseInt(duration_hours) || 0) * 60 + (parseInt(duration_minutes) || 0);
+        // Cap appointment end time at 21:00
+        const startDate = new Date(date);
+        const maxEndDate = new Date(startDate);
+        maxEndDate.setHours(21, 0, 0, 0);
+        let durationInMinutes = (parseInt(duration_hours) || 0) * 60 + (parseInt(duration_minutes) || 0);
         if (durationInMinutes <= 0) {
             alert("La durée doit être supérieure à 0.");
             return;
+        }
+        const requestedEndDate = new Date(startDate.getTime() + durationInMinutes * 60000);
+        if (requestedEndDate > maxEndDate) {
+            durationInMinutes = Math.floor((maxEndDate - startDate) / 60000);
+            alert("La durée a été ajustée pour finir au plus tard à 21h.");
         }
 
         setLoading(true);
@@ -160,8 +169,18 @@ const Appointments = () => {
     const handleEditEvent = async (info) => {
         const appointmentId = info.event.id;
         const date = info.event.startStr.slice(0, 16);
-        const durationMinutes = (new Date(info.event.end).getTime() - new Date(info.event.start).getTime()) / 60000;
-    
+        let durationMinutes = (new Date(info.event.end).getTime() - new Date(info.event.start).getTime()) / 60000;
+
+        // Cap appointment end time at 21:00
+        const startDate = new Date(info.event.start);
+        const maxEndDate = new Date(startDate);
+        maxEndDate.setHours(21, 0, 0, 0);
+        const requestedEndDate = new Date(startDate.getTime() + durationMinutes * 60000);
+        if (requestedEndDate > maxEndDate) {
+            durationMinutes = Math.floor((maxEndDate - startDate) / 60000);
+            alert("La durée a été ajustée pour finir au plus tard à 21h.");
+        }
+
         try {
             await updateAppointment(appointmentId, { date, duration_minutes: durationMinutes });
             await fetchAppointments();
