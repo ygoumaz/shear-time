@@ -168,6 +168,9 @@
 
 /* Responsive Fix for Smaller Screens */
 @media (max-width: 768px) {
+    :global(.fc-ltr .fc-time-grid .fc-event-container) {
+        margin: 0 12% 0 2px !important;
+    }
     .header {
         flex-direction: row;
         align-items: center;
