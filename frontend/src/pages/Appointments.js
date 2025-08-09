@@ -172,8 +172,8 @@ const Appointments = () => {
         }
     }
 
-    return (
-        <div style={{ position: "relative" }}>
+return (
+        <div className={styles.calendarContainer} style={{ position: "relative" }}>
             <div className={styles.header}>
                 <h1 className={styles.pageTitle}>Calendrier</h1>
                 <button onClick={() => navigate("/customers")} id={styles.customerBtn}>Liste des clients</button>
