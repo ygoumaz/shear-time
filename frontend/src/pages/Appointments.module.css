@@ -4,6 +4,11 @@
     padding-bottom: 16px;
 }
 
+:global(.fc-timegrid-event) {
+  width: 70% !important;
+  right: auto !important;
+}
+
 .header {
     display: flex;
     align-items: center;
@@ -148,9 +153,6 @@
 }
 
 @media (max-width: 1024px) {
-    :global(.fc-ltr .fc-time-grid .fc-event-container) {
-        margin: 0 12% 0 2px !important;
-    }
     .appointmentPanel {
         position: fixed;
         top: 50%;
