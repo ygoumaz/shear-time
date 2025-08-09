@@ -196,7 +196,7 @@ const Appointments = () => {
                 eventResize={handleEditEvent}
                 locale={frLocale}
                 slotMinTime="08:00:00"
-                slotMaxTime="19:00:00"
+                slotMaxTime="21:00:00"
                 hiddenDays={[0]}
                 allDaySlot={false}
                 height="auto"
