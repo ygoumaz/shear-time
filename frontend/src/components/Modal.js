@@ -3,11 +3,7 @@ import styles from "./Modal.module.css";
 const InfoModal = ({ message, onClose }) => (
     <div className={styles.modalOverlay}>
         <div className={styles.modalContent}>
-            <div>
-                {message.split("\n").map((line, index) => (
-                    <p key={index}>{line}</p>
-                ))}
-            </div>
+        <div dangerouslySetInnerHTML={{ __html: message }} />
             <div className={styles.modalButtons}>
                 <button onClick={onClose} className={styles.closeBtn}>Fermer</button>
             </div>
@@ -18,13 +14,9 @@ const InfoModal = ({ message, onClose }) => (
 const ConfirmModal = ({ message, onClose, onConfirm }) => (
     <div className={styles.modalOverlay}>
         <div className={styles.modalContent}>
-            <div>
-                {message.split("\n").map((line, index) => (
-                    <p key={index}>{line}</p>
-                ))}
-            </div>
+        <div dangerouslySetInnerHTML={{ __html: message }} />
             <div className={styles.modalButtons}>
-                <button onClick={onConfirm} className={styles.confirmBtn}>Confirmer</button>
+                <button onClick={onConfirm} className={styles.confirmBtn}>Supprimer</button>
                 <button onClick={onClose} className={styles.closeBtn}>Fermer</button>
             </div>
         </div>

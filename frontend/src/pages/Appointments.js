@@ -148,22 +148,47 @@ const Appointments = () => {
 
     const handleEventClick = async (eventClickInfo) => {
         const appointmentId = eventClickInfo.event.id;
-        setModal({
-            open: true,
-            type: "confirm",
-            message: "Voulez-vous vraiment supprimer ce rendez-vous ?",
-            onConfirm: async () => {
-                setModal({ open: false, message: "", onConfirm: null });
-                setAppointments((prev) => prev.filter((c) => c.id !== appointmentId));
-                try {
-                    await deleteAppointment(appointmentId);
-                    await fetchAppointments();
-                } catch (error) {
-                    console.error("Failed to delete appointment:", error);
-                    setModal({ open: true, message: "Erreur lors de la suppression du rendez-vous.", onConfirm: null });
+        const appointment = appointments.find(a => String(a.id) === String(appointmentId));
+        if (appointment) {
+            const startDate = new Date(appointment.date);
+            const endDate = new Date(startDate.getTime() + appointment.duration_minutes * 60000);
+            const formatDate = (date) => date.toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            }) + " à " + date.toLocaleTimeString("fr-FR", {
+                hour: "2-digit",
+                minute: "2-digit"
+            }).replace(":", "h");
+const dateStr = startDate.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+const startStr = startDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
+const endStr = endDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
+const hours = Math.floor(appointment.duration_minutes / 60);
+const minutes = appointment.duration_minutes % 60;
+const durationStr = (hours ? `${hours}h` : "") + (minutes ? ` ${minutes}min` : "");
+const message = 
+    `<strong style="font-size:1.2em">${appointment.customer}</strong><br/>
+    <span style="margin-top:8px;display:block">${dateStr}</span>
+    <span style="margin-top:4px;display:block">${startStr} - ${endStr}</span>
+    <span style="margin-top:4px;display:block">Durée : ${durationStr.trim()}</span>`;
+            console.log(message);
+            setModal({
+                open: true,
+                type: "confirm",
+                message,
+                onConfirm: async () => {
+                    setModal({ open: false, message: "", onConfirm: null });
+                    setAppointments((prev) => prev.filter((c) => c.id !== appointmentId));
+                    try {
+                        await deleteAppointment(appointmentId);
+                        await fetchAppointments();
+                    } catch (error) {
+                        console.error("Failed to delete appointment:", error);
+                        setModal({ open: true, message: "Erreur lors de la suppression du rendez-vous.", onConfirm: null });
+                    }
                 }
-            }
-        });
+            });
+        }
     };
 
     const handleEditEvent = async (info) => {

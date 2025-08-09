@@ -106,7 +106,7 @@ const Customers = () => {
             updateData = { name: value };
         } else if (field === "phone") {
             updateData = { phone: value };
-            if (!(/^\d{0,10}$/.test(value)) || value.length != 10) {
+            if (!(/^\d{0,10}$/.test(value)) || value.length !== 10) {
                 console.error("Failed to update phone number: incorrect format");
                 setModal({ open: true, message: "Le numéro de téléphone a un format incorrect." });
                 return;
