@@ -7,7 +7,9 @@ import styles from "./Customers.module.css";
 const Customers = () => {
     const [customers, setCustomers] = useState([]);
     const [newCustomer, setNewCustomer] = useState({ 
-        name: "", 
+        nom: "", 
+        prenom: "", 
+        surnom: "", 
         phone: "" 
     });
     const [loading, setLoading] = useState(false);
@@ -44,26 +46,38 @@ const Customers = () => {
 
     const handleAddCustomer = async (e) => {
         e.preventDefault();
-        if (!newCustomer.name || !newCustomer.phone) {
-            setModal({ open: true, message: "Veuillez remplir tous les champs.", onConfirm: null });
+        if (!newCustomer.nom || !newCustomer.prenom || !newCustomer.phone) {
+            setModal({ open: true, message: "Veuillez remplir les champs obligatoires (Nom et Prénom).", onConfirm: null });
             return;
         }
 
         setLoading(true);
 
+        // Concatenate fields to form the name
+        let fullName = `${newCustomer.prenom}`;
+        if (newCustomer.surnom) {
+            fullName += ` "${newCustomer.surnom}"`;
+        }
+        fullName += ` ${newCustomer.nom}`;
+
+        const customerToAdd = {
+            name: fullName,
+            phone: newCustomer.phone
+        };
+
         // Optimistically update the UI
-        const tempCustomer = { id: Date.now(), ...newCustomer };
+        const tempCustomer = { id: Date.now(), ...customerToAdd };
         setCustomers((prev) => [...prev, tempCustomer]);
 
         try {
-            await addCustomer(newCustomer);
+            await addCustomer(customerToAdd);
             await fetchCustomers(); // Ensure we fetch the latest data
         } catch (error) {
             console.error("Failed to add customer:", error);
             setModal({ open: true, message: "Erreur lors de l'ajout du client.", onConfirm: null });
             setCustomers((prev) => prev.filter((c) => c.id !== tempCustomer.id)); // Rollback UI update
         } finally {
-            setNewCustomer({ name: "", phone: "" });
+            setNewCustomer({ nom: "", prenom: "", surnom: "", phone: "" });
             setLoading(false);
         }
     };
@@ -158,13 +172,25 @@ const Customers = () => {
                 <div className={styles.leftPanel}>
                     <h2 className={styles.panelTitle}>Nouveau client</h2>
                     <form onSubmit={handleAddCustomer} className={styles.newCustomerForm}>
-                        <label>Nom</label>
+                        <label>Nom *</label>
                         <input
-                            placeholder="John"
-                            value={newCustomer.name}
-                            onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                            placeholder="Dupont"
+                            value={newCustomer.nom}
+                            onChange={(e) => setNewCustomer({ ...newCustomer, nom: e.target.value })}
                         />
-                        <label>Téléphone</label>
+                        <label>Prénom *</label>
+                        <input
+                            placeholder="Jean"
+                            value={newCustomer.prenom}
+                            onChange={(e) => setNewCustomer({ ...newCustomer, prenom: e.target.value })}
+                        />
+                        <label>Surnom</label>
+                        <input
+                            placeholder="Le Magnifique"
+                            value={newCustomer.surnom}
+                            onChange={(e) => setNewCustomer({ ...newCustomer, surnom: e.target.value })}
+                        />
+                        <label>Téléphone *</label>
                         <input
                             placeholder="0791234567"
                             value={newCustomer.phone}
@@ -176,7 +202,7 @@ const Customers = () => {
                             }}
                             maxLength="10"
                         />
-                        <button type="submit" disabled={loading || !newCustomer.name || !(newCustomer.phone.length === 10)}>
+                        <button type="submit" disabled={loading || !newCustomer.nom || !newCustomer.prenom || !(newCustomer.phone.length === 10)}>
                             {loading ? "Ajout en cours..." : "Ajouter un client"}
                         </button>
                     </form>
