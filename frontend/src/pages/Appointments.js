@@ -328,7 +328,7 @@ return (
                             )}
                         </div>
 
-                        <div>
+                        <div className={styles.durationContainer}>
                             <input
                                 type="number"
                                 placeholder="Heure(s)"

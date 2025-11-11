@@ -311,3 +311,16 @@
     align-items: center;
     justify-content: center;
 }
+
+/* Duration Container - Horizontal Layout */
+.durationContainer {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.durationContainer input {
+    margin: 0;
+}
