@@ -24,6 +24,10 @@ const Appointments = () => {
     const [showPanel, setShowPanel] = useState(false);
     const [panelPosition, setPanelPosition] = useState({ top: 100, left: 100 });
     
+    const [searchQuery, setSearchQuery] = useState("");
+    const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+    const [selectedCustomerName, setSelectedCustomerName] = useState("");
+    
     const [modal, setModal] = useState({
         open: false,
         message: "",
@@ -100,12 +104,34 @@ const Appointments = () => {
 
     const handleDateClick = useCallback((arg) => {
         const formattedDate = arg.dateStr.slice(0, 16);
-        setNewAppointment({ ...newAppointment, date: formattedDate });
+        setNewAppointment({ customer_id: "", date: formattedDate, duration_hours: "", duration_minutes: "" });
         setSelectedDate(formattedDate);
+        setSearchQuery("");
+        setSelectedCustomerName("");
+        setShowCustomerDropdown(false);
         
         const panelPosition = computePanelPosition(arg.jsEvent);
         setPanelPosition(panelPosition);
         setShowPanel(true);
+    }, []);
+
+    // Filter customers based on search query
+    const filteredCustomers = customers
+        .filter(customer => 
+            customer.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    // Click outside handler for dropdown
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (!event.target.closest(`.${styles.customerSearchContainer}`)) {
+                setShowCustomerDropdown(false);
+            }
+        };
+        
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
     
 
@@ -263,17 +289,44 @@ return (
                     <h2>Ajouter un rendez-vous</h2>
                     <h3>{formatDate(selectedDate)}</h3>
                     <form onSubmit={handleAddAppointment}>
-                        <select
-                            value={newAppointment.customer_id}
-                            onChange={(e) => setNewAppointment({ ...newAppointment, customer_id: e.target.value })}
-                        >
-                            <option value="">Sélectionner un client</option>
-                            {customers
-                                .sort((a, b) => a.name.localeCompare(b.name))
-                                .map((c) => (
-                                <option key={c.id} value={c.id}>{c.name}</option>
-                            ))}
-                        </select>
+                        <div className={styles.customerSearchContainer}>
+                            <input
+                                type="text"
+                                placeholder="Rechercher un client..."
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setShowCustomerDropdown(true);
+                                    setSelectedCustomerName("");
+                                    setNewAppointment({ ...newAppointment, customer_id: "" });
+                                }}
+                                onFocus={() => setShowCustomerDropdown(true)}
+                                className={styles.searchInput}
+                            />
+                            
+                            {showCustomerDropdown && (
+                                <div className={styles.customerDropdown}>
+                                    {filteredCustomers.length > 0 ? (
+                                        filteredCustomers.map((customer) => (
+                                            <div
+                                                key={customer.id}
+                                                className={styles.customerItem}
+                                                onClick={() => {
+                                                    setNewAppointment({ ...newAppointment, customer_id: customer.id });
+                                                    setSelectedCustomerName(customer.name);
+                                                    setSearchQuery(customer.name);
+                                                    setShowCustomerDropdown(false);
+                                                }}
+                                            >
+                                                {customer.name}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className={styles.noResults}>Aucun client trouvé</div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
 
                         <div>
                             <input
