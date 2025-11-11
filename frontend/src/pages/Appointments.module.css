@@ -5,7 +5,7 @@
 }
 
 :global(.fc-timegrid-event) {
-  width: 70% !important;
+  width: 100% !important;
   right: auto !important;
 }
 
