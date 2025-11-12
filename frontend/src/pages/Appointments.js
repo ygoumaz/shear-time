@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAppointments, addAppointment, updateAppointment, deleteAppointment, getCustomers } from "../api/api";
 import FullCalendar from "@fullcalendar/react";
@@ -82,6 +82,12 @@ const Appointments = () => {
 
 
     const handleDateClick = useCallback((arg) => {
+        // If panel is already open, close it instead of opening a new one
+        if (showPanel) {
+            setShowPanel(false);
+            return;
+        }
+        
         const formattedDate = arg.dateStr.slice(0, 16);
         setNewAppointment({ customer_id: "", date: formattedDate, duration_hours: "", duration_minutes: "" });
         setSelectedDate(formattedDate);
@@ -89,7 +95,7 @@ const Appointments = () => {
         setSelectedCustomerName("");
         setShowCustomerDropdown(false);
         setShowPanel(true);
-    }, []);
+    }, [showPanel]);
 
     // Filter customers based on search query
     const filteredCustomers = customers
@@ -109,6 +115,23 @@ const Appointments = () => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    const panelRef = useRef(null);
+
+    // Click outside handler for appointment panel
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (panelRef.current && !panelRef.current.contains(event.target)) {
+                setShowPanel(false);
+            }
+        };
+        
+        if (showPanel) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showPanel]);
     
 
     const handleAddAppointment = async (e) => {
@@ -251,10 +274,12 @@ return (
 
 
             {showPanel && (
-                <div className={styles.appointmentPanel}>
-                    <h2>Ajouter un rendez-vous</h2>
-                    <h3>{formatDate(selectedDate)}</h3>
-                    <form onSubmit={handleAddAppointment}>
+                <>
+                    <div className={styles.panelOverlay} onClick={() => setShowPanel(false)} />
+                    <div className={styles.appointmentPanel} ref={panelRef}>
+                        <h2>Ajouter un rendez-vous</h2>
+                        <h3>{formatDate(selectedDate)}</h3>
+                        <form onSubmit={handleAddAppointment}>
                         <div className={styles.customerSearchContainer}>
                             <input
                                 type="text"
@@ -324,8 +349,9 @@ return (
                             {loading ? "Ajout en cours..." : "Ajouter Rendez-vous"}
                         </button>
                     </form>
-                    <button onClick={() => setShowPanel(false)} id={styles.cancelBtn}>Annuler</button>
-                </div>
+                        <button onClick={() => setShowPanel(false)} id={styles.cancelBtn}>Annuler</button>
+                    </div>
+                </>
             )}
             {modal.open && <Modal type={modal.type} message={modal.message} onClose={() => setModal({ open: false, message: "", onConfirm: null })} onConfirm={modal.onConfirm} />}
             {loading && (
