@@ -25,7 +25,6 @@ const Appointments = () => {
     
     const [searchQuery, setSearchQuery] = useState("");
     const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
-    const [selectedCustomerName, setSelectedCustomerName] = useState("");
     
     const [modal, setModal] = useState({
         open: false,
@@ -92,7 +91,6 @@ const Appointments = () => {
         setNewAppointment({ customer_id: "", date: formattedDate, duration_hours: "", duration_minutes: "" });
         setSelectedDate(formattedDate);
         setSearchQuery("");
-        setSelectedCustomerName("");
         setShowCustomerDropdown(false);
         setShowPanel(true);
     }, [showPanel]);
@@ -288,7 +286,6 @@ return (
                                 onChange={(e) => {
                                     setSearchQuery(e.target.value);
                                     setShowCustomerDropdown(true);
-                                    setSelectedCustomerName("");
                                     setNewAppointment({ ...newAppointment, customer_id: "" });
                                 }}
                                 onFocus={() => setShowCustomerDropdown(true)}
@@ -302,12 +299,11 @@ return (
                                             <div
                                                 key={customer.id}
                                                 className={styles.customerItem}
-                                                onClick={() => {
-                                                    setNewAppointment({ ...newAppointment, customer_id: customer.id });
-                                                    setSelectedCustomerName(customer.name);
-                                                    setSearchQuery(customer.name);
-                                                    setShowCustomerDropdown(false);
-                                                }}
+                                onClick={() => {
+                                    setNewAppointment({ ...newAppointment, customer_id: customer.id });
+                                    setSearchQuery(customer.name);
+                                    setShowCustomerDropdown(false);
+                                }}
                                             >
                                                 {customer.name}
                                             </div>
