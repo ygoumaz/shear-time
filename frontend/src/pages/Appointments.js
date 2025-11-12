@@ -22,7 +22,6 @@ const Appointments = () => {
     const [selectedDate, setSelectedDate] = useState(null);
     
     const [showPanel, setShowPanel] = useState(false);
-    const [panelPosition, setPanelPosition] = useState({ top: 100, left: 100 });
     
     const [searchQuery, setSearchQuery] = useState("");
     const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
@@ -81,26 +80,6 @@ const Appointments = () => {
         }).replace(":", "h");
     };
 
-    const computePanelPosition = (clickPos) => {
-        const panelWidth = 322;
-        const panelHeight = 353;
-        const { clientX, clientY } = clickPos;
-        const { innerWidth, innerHeight } = window;
-        let left = clientX;
-        let top = clientY;
-    
-        // Prevent overflow on the right
-        if (clientX + panelWidth > innerWidth) {
-            left = clientX - panelWidth; // Move left instead
-        }
-    
-        // Prevent overflow on the bottom
-        if (clientY + panelHeight > innerHeight) {
-            top = clientY - panelHeight; // Move up instead
-        }
-
-        return {top, left};
-    }
 
     const handleDateClick = useCallback((arg) => {
         const formattedDate = arg.dateStr.slice(0, 16);
@@ -109,9 +88,6 @@ const Appointments = () => {
         setSearchQuery("");
         setSelectedCustomerName("");
         setShowCustomerDropdown(false);
-        
-        const panelPosition = computePanelPosition(arg.jsEvent);
-        setPanelPosition(panelPosition);
         setShowPanel(true);
     }, []);
 
@@ -275,17 +251,7 @@ return (
 
 
             {showPanel && (
-                <div className={styles.appointmentPanel} style={{
-                    position: "absolute",
-                    top: panelPosition.top,
-                    left: panelPosition.left,
-                    background: "white",
-                    padding: "10px",
-                    border: "1px solid #ccc",
-                    borderRadius: "5px",
-                    boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
-                    zIndex: 1000,
-                }}>
+                <div className={styles.appointmentPanel}>
                     <h2>Ajouter un rendez-vous</h2>
                     <h3>{formatDate(selectedDate)}</h3>
                     <form onSubmit={handleAddAppointment}>
