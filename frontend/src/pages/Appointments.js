@@ -175,14 +175,6 @@ const Appointments = () => {
         if (appointment) {
             const startDate = new Date(appointment.date);
             const endDate = new Date(startDate.getTime() + appointment.duration_minutes * 60000);
-            const formatDate = (date) => date.toLocaleDateString("fr-FR", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-            }) + " à " + date.toLocaleTimeString("fr-FR", {
-                hour: "2-digit",
-                minute: "2-digit"
-            }).replace(":", "h");
 const dateStr = startDate.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
 const startStr = startDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
 const endStr = endDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
