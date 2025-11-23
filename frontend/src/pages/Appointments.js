@@ -239,6 +239,7 @@ return (
             <FullCalendar
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                 initialView="timeGridWeek"
+                displayEventTime={false}
                 selectable={true}
                 editable={true} // Allows dragging
                 eventResizableFromStart={false}
@@ -256,8 +257,11 @@ return (
                         const service = services[a.service_code];
                         const block = service.blocks[a.block_index];
                         
-                        if (block && block.label) {
-                            // Use block-specific label
+                        if (block && block.code) {
+                            // Use block-specific code
+                            title = `${a.customer} - ${block.code}`;
+                        } else if (block && block.label) {
+                            // Fallback to label if no code available
                             title = `${a.customer} - ${block.label}`;
                         } else {
                             // Fallback to service name if block info not available
@@ -358,7 +362,9 @@ return (
                                                         </div>
                                                         <div className={styles.blockContent}>
                                                             <div className={styles.blockLabel}>
-                                                                {block.type === 'service' ? block.label : 'Pause'}
+                                                                {block.type === 'service' 
+                                                                    ? (block.code ? `${block.label} - ${block.code}` : block.label)
+                                                                    : 'Pause'}
                                                             </div>
                                                             <div className={styles.blockDuration}>
                                                                 {block.duration} minutes

@@ -1,109 +1,109 @@
 {
   "CP": {
     "name": "Coupe Femme",
-    "code": "CP",
     "color": "#E91E63",
     "blocks": [
       {
         "duration": 30,
         "type": "service",
-        "label": "Coupe Femme"
+        "label": "Coupe Femme",
+        "code": "CP"
       }
     ]
   },
   "BR": {
     "name": "Brushing (Solo)",
-    "code": "BR",
     "color": "#9C27B0",
     "blocks": [
       {
         "duration": 30,
         "type": "service",
-        "label": "Brushing"
+        "label": "Brushing",
+        "code": "BR"
       }
     ]
   },
   "BRC": {
     "name": "Brushing (coupe ou technique)",
-    "code": "BRC",
     "color": "#673AB7",
     "blocks": [
       {
         "duration": 60,
         "type": "service",
-        "label": "Brushing"
+        "label": "Brushing",
+        "code": "BRC"
       }
     ]
   },
   "SOINSC": {
     "name": "Cellophane",
-    "code": "SOINSC",
     "color": "#3F51B5",
     "blocks": [
       {
         "duration": 60,
         "type": "service",
-        "label": "Cellophane"
+        "label": "Cellophane",
+        "code": "SOINSC"
       }
     ]
   },
   "CHIGNON": {
     "name": "Chignon",
-    "code": "CHIGNON",
     "color": "#2196F3",
     "blocks": [
       {
         "duration": 60,
         "type": "service",
-        "label": "Chignon"
+        "label": "Chignon",
+        "code": "CHIGNON"
       }
     ]
   },
   "CH": {
     "name": "Coupe Homme",
-    "code": "CH",
     "color": "#4CAF50",
     "blocks": [
       {
         "duration": 30,
         "type": "service",
-        "label": "Coupe Homme"
+        "label": "Coupe Homme",
+        "code": "CH"
       }
     ]
   },
   "SOINSH": {
-    "name": "Coloration/Soins",
-    "code": "SOINSH",
+    "name": "Coloration/Soins Homme",
     "color": "#009688",
     "blocks": [
       {
         "duration": 60,
         "type": "service",
-        "label": "Coloration/Soins"
+        "label": "Coloration/Soins Homme",
+        "code": "SOINSH"
       }
     ]
   },
   "CE": {
-    "name": "Coupe a/s shampooing",
-    "code": "CE",
+    "name": "Coupe Enfant",
     "color": "#FF9800",
     "blocks": [
       {
         "duration": 30,
         "type": "service",
-        "label": "Coupe a/s shampooing"
+        "label": "Coupe Enfant",
+        "code": "CE"
       }
     ]
   },
   "DYE_BRUSH": {
-    "name": "Teinture + Brushing", 
-    "code": "DYE_BRUSH",
+    "name": "Teinture + Brushing",
     "color": "#FF5722",
     "blocks": [
       {
         "duration": 30,
         "type": "service",
-        "label": "Teinture"
+        "label": "Teinture",
+        "code": "TEINT"
       },
       {
         "duration": 30,
@@ -112,19 +112,20 @@
       {
         "duration": 30,
         "type": "service",
-        "label": "Brushing"
+        "label": "Brushing",
+        "code": "BR"
       }
     ]
   },
   "MEC_BAL_SOINSP_SOINSC": {
-    "name": "Mèches / Balayage + Soins", 
-    "code": "MEC_BAL_SOINSP_SOINSC",
+    "name": "Mèches / Balayage + Soins",
     "color": "#795548",
     "blocks": [
       {
         "duration": 60,
         "type": "service",
-        "label": "Mèches / Balayage"
+        "label": "Mèches / Balayage",
+        "code": "MEC/BAL"
       },
       {
         "duration": 30,
@@ -133,7 +134,8 @@
       {
         "duration": 30,
         "type": "service",
-        "label": "Rinçage + Soins"
+        "label": "Rinçage + Soins",
+        "code": "SOINSC/SOINSP"
       },
       {
         "duration": 30,
@@ -142,19 +144,20 @@
       {
         "duration": 30,
         "type": "service",
-        "label": "Finition"
+        "label": "Finition",
+        "code": "FIN"
       }
     ]
   },
   "MEC_BAL_BR": {
-    "name": "Mèches / Balayage + Brushing", 
-    "code": "MEC_BAL_BR",
+    "name": "Mèches / Balayage + Brushing",
     "color": "#607D8B",
     "blocks": [
       {
         "duration": 60,
         "type": "service",
-        "label": "Mèches / Balayage"
+        "label": "Mèches / Balayage",
+        "code": "MEC/BAL"
       },
       {
         "duration": 30,
@@ -163,7 +166,8 @@
       {
         "duration": 30,
         "type": "service",
-        "label": "Brushing"
+        "label": "Brushing",
+        "code": "BR"
       }
     ]
   }
