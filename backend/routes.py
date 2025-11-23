@@ -89,28 +89,34 @@ def appointments():
 
 def create_service_appointment(data):
     """Create appointments for a service with potentially multiple blocks"""
-    service_code = data['service_code']
-    service = current_app.services.get(service_code)
-    
-    if not service:
-        return jsonify({"error": "Service not found"}), 400
-    
-    start_date = datetime.strptime(data['date'], '%Y-%m-%dT%H:%M')
-    
-    # Check if service is available
-    if not is_service_available(service, start_date):
-        return jsonify({"error": "Service not available at this time"}), 400
-    
-    # Create group ID for multi-block services
-    group_id = str(uuid.uuid4()) if len(service['blocks']) > 1 else None
-    
-    current_time = start_date
-    appointments_created = []
-    
     try:
+        service_code = data.get('service_code')
+        if not service_code:
+            return jsonify({"error": "service_code is required"}), 400
+        
+        service = current_app.services.get(service_code)
+        
+        if not service:
+            return jsonify({"error": f"Service not found: {service_code}"}), 400
+        
+        if 'blocks' not in service:
+            return jsonify({"error": f"Service {service_code} has no blocks defined"}), 400
+        
+        start_date = datetime.strptime(data['date'], '%Y-%m-%dT%H:%M')
+        
+        # Check if service is available
+        if not is_service_available(service, start_date):
+            return jsonify({"error": "Service not available at this time"}), 400
+        
+        # Create group ID for multi-block services
+        group_id = str(uuid.uuid4()) if len(service['blocks']) > 1 else None
+        
+        current_time = start_date
+        appointments_created = []
+        
         for block_index, block in enumerate(service['blocks']):
             # Only create appointments for service blocks, not pauses
-            if block['type'] == 'service':
+            if block.get('type') == 'service':
                 appointment = Appointment(
                     customer_id=data['customer_id'],
                     date=current_time,
@@ -131,9 +137,18 @@ def create_service_appointment(data):
             "group_id": group_id
         }), 201
         
+    except KeyError as e:
+        db.session.rollback()
+        return jsonify({"error": f"Missing required field: {str(e)}"}), 400
+    except ValueError as e:
+        db.session.rollback()
+        return jsonify({"error": f"Invalid value: {str(e)}"}), 400
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error creating service appointment: {error_details}")
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 @api_blueprint.route('/appointments/<int:appointment_id>', methods=['PUT'])
 def update_appointment(appointment_id):
