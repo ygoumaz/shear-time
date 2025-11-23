@@ -178,7 +178,11 @@ const Appointments = () => {
             const endStr = endDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
             
             const serviceName = appointment.service_code && services[appointment.service_code] 
-                ? services[appointment.service_code].name 
+                ? (() => {
+                    const service = services[appointment.service_code];
+                    const block = service.blocks[appointment.block_index];
+                    return block?.label || service.name;
+                })()
                 : "Service personnalisé";
             
             const hours = Math.floor(appointment.duration_minutes / 60);
@@ -249,12 +253,29 @@ return (
                 selectable={true}
                 editable={true} // Allows dragging
                 longPressDelay={200}
-                events={appointments.map((a) => ({
-                    id: a.id,
-                    title: a.service_code ? `${a.customer} - ${services[a.service_code]?.name || a.service_code}` : a.customer,
-                    start: new Date(a.date),
-                    end: new Date(new Date(a.date).getTime() + a.duration_minutes * 60000)
-                }))}
+                events={appointments.map((a) => {
+                    let title = a.customer;
+                    
+                    if (a.service_code && services[a.service_code]) {
+                        const service = services[a.service_code];
+                        const block = service.blocks[a.block_index];
+                        
+                        if (block && block.label) {
+                            // Use block-specific label
+                            title = `${a.customer} - ${block.label}`;
+                        } else {
+                            // Fallback to service name if block info not available
+                            title = `${a.customer} - ${service.name}`;
+                        }
+                    }
+                    
+                    return {
+                        id: a.id,
+                        title: title,
+                        start: new Date(a.date),
+                        end: new Date(new Date(a.date).getTime() + a.duration_minutes * 60000)
+                    };
+                })}
                 dateClick={handleDateClick}
                 eventClick={handleEventClick}
                 eventDrop={handleEditEvent}
