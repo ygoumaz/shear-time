@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAppointments, addAppointment, updateAppointment, deleteAppointment, getCustomers } from "../api/api";
+import { getAppointments, addAppointment, updateAppointment, deleteAppointment, getCustomers, getServices, getAvailableServices } from "../api/api";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -12,12 +12,13 @@ import styles from "./Appointments.module.css";
 const Appointments = () => {
     const [appointments, setAppointments] = useState([]);
     const [customers, setCustomers] = useState([]);
+    const [services, setServices] = useState({});
+    const [availableServices, setAvailableServices] = useState({});
 
     const [newAppointment, setNewAppointment] = useState({
         customer_id: "",
         date: "",
-        duration_hours: "",
-        duration_minutes: ""
+        service_code: ""
     });
     const [selectedDate, setSelectedDate] = useState(null);
     
@@ -52,12 +53,14 @@ const Appointments = () => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const [fetchedAppointments, fetchedCustomers] = await Promise.all([
+                const [fetchedAppointments, fetchedCustomers, fetchedServices] = await Promise.all([
                     getAppointments(),
                     getCustomers(),
+                    getServices()
                 ]);
                 setAppointments(fetchedAppointments);
                 setCustomers(fetchedCustomers);
+                setServices(fetchedServices);
             } catch (error) {
                 console.error("Error fetching data:", error);
             } finally {
@@ -80,7 +83,7 @@ const Appointments = () => {
     };
 
 
-    const handleDateClick = useCallback((arg) => {
+    const handleDateClick = useCallback(async (arg) => {
         // If panel is already open, close it instead of opening a new one
         if (showPanel) {
             setShowPanel(false);
@@ -88,10 +91,20 @@ const Appointments = () => {
         }
         
         const formattedDate = arg.dateStr.slice(0, 16);
-        setNewAppointment({ customer_id: "", date: formattedDate, duration_hours: "", duration_minutes: "" });
+        setNewAppointment({ customer_id: "", date: formattedDate, service_code: "" });
         setSelectedDate(formattedDate);
         setSearchQuery("");
         setShowCustomerDropdown(false);
+        
+        // Fetch available services for this date/time
+        try {
+            const available = await getAvailableServices(formattedDate);
+            setAvailableServices(available);
+        } catch (error) {
+            console.error("Error fetching available services:", error);
+            setAvailableServices({});
+        }
+        
         setShowPanel(true);
     }, [showPanel]);
 
@@ -134,32 +147,17 @@ const Appointments = () => {
 
     const handleAddAppointment = async (e) => {
         e.preventDefault();
-        const { customer_id, date, duration_hours, duration_minutes } = newAppointment;
-        if (!customer_id || !date || (!duration_hours && !duration_minutes)) {
+        const { customer_id, date, service_code } = newAppointment;
+        if (!customer_id || !date || !service_code) {
             alert("Veuillez remplir tous les champs.");
             return;
         }
 
-        // Cap appointment end time at 21:00
-        const startDate = new Date(date);
-        const maxEndDate = new Date(startDate);
-        maxEndDate.setHours(21, 0, 0, 0);
-        let durationInMinutes = (parseInt(duration_hours) || 0) * 60 + (parseInt(duration_minutes) || 0);
-        if (durationInMinutes <= 0) {
-            alert("La durée doit être supérieure à 0.");
-            return;
-        }
-        const requestedEndDate = new Date(startDate.getTime() + durationInMinutes * 60000);
-        if (requestedEndDate > maxEndDate) {
-            durationInMinutes = Math.floor((maxEndDate - startDate) / 60000);
-            alert("La durée a été ajustée pour finir au plus tard à 21h.");
-        }
-
         setLoading(true);
         try {
-            await addAppointment({ customer_id, date, duration_minutes: durationInMinutes });
+            await addAppointment({ customer_id, date, service_code });
             await fetchAppointments();
-            setNewAppointment({ customer_id: "", date: "", duration_hours: "", duration_minutes: "" });
+            setNewAppointment({ customer_id: "", date: "", service_code: "" });
             setShowPanel(false);
         } catch (error) {
             console.error("Failed to add appointment:", error);
@@ -175,18 +173,25 @@ const Appointments = () => {
         if (appointment) {
             const startDate = new Date(appointment.date);
             const endDate = new Date(startDate.getTime() + appointment.duration_minutes * 60000);
-const dateStr = startDate.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
-const startStr = startDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
-const endStr = endDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
-const hours = Math.floor(appointment.duration_minutes / 60);
-const minutes = appointment.duration_minutes % 60;
-const durationStr = (hours ? `${hours}h` : "") + (minutes ? ` ${minutes}min` : "");
-const message = 
-    `<strong style="font-size:1.2em">${appointment.customer}</strong><br/>
-    <span style="margin-top:8px;display:block">${dateStr}</span>
-    <span style="margin-top:4px;display:block">${startStr} - ${endStr}</span>
-    <span style="margin-top:4px;display:block">Durée : ${durationStr.trim()}</span>`;
-            console.log(message);
+            const dateStr = startDate.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+            const startStr = startDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
+            const endStr = endDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
+            
+            const serviceName = appointment.service_code && services[appointment.service_code] 
+                ? services[appointment.service_code].name 
+                : "Service personnalisé";
+            
+            const hours = Math.floor(appointment.duration_minutes / 60);
+            const minutes = appointment.duration_minutes % 60;
+            const durationStr = (hours ? `${hours}h` : "") + (minutes ? ` ${minutes}min` : "");
+            
+            const message = 
+                `<strong style="font-size:1.2em">${appointment.customer}</strong><br/>
+                <span style="margin-top:8px;display:block">${serviceName}</span>
+                <span style="margin-top:4px;display:block">${dateStr}</span>
+                <span style="margin-top:4px;display:block">${startStr} - ${endStr}</span>
+                <span style="margin-top:4px;display:block">Durée : ${durationStr.trim()}</span>`;
+            
             setModal({
                 open: true,
                 type: "confirm",
@@ -246,7 +251,7 @@ return (
                 longPressDelay={200}
                 events={appointments.map((a) => ({
                     id: a.id,
-                    title: a.customer,
+                    title: a.service_code ? `${a.customer} - ${services[a.service_code]?.name || a.service_code}` : a.customer,
                     start: new Date(a.date),
                     end: new Date(new Date(a.date).getTime() + a.duration_minutes * 60000)
                 }))}
@@ -307,33 +312,36 @@ return (
                             )}
                         </div>
 
-                        <div className={styles.durationContainer}>
-                            <input
-                                type="number"
-                                placeholder="Heure(s)"
-                                min="0"
-                                value={newAppointment.duration_hours}
+                        <div className={styles.serviceContainer}>
+                            <select
+                                value={newAppointment.service_code}
                                 onChange={(e) => setNewAppointment({
                                     ...newAppointment,
-                                    duration_hours: e.target.value
+                                    service_code: e.target.value
                                 })}
-                                style={{ width: "90px" }}
-                            />
-                            <input
-                                type="number"
-                                placeholder="Minute(s)"
-                                min="0"
-                                max="59"
-                                value={newAppointment.duration_minutes}
-                                onChange={(e) => setNewAppointment({
-                                    ...newAppointment,
-                                    duration_minutes: e.target.value
-                                })}
-                                style={{ width: "90px" }}
-                            />
+                                className={styles.serviceSelector}
+                            >
+                                <option value="">Choisir un service...</option>
+                                {Object.entries(availableServices).map(([code, service]) => (
+                                    <option key={code} value={code}>
+                                        {service.name}
+                                    </option>
+                                ))}
+                            </select>
+                            {newAppointment.service_code && availableServices[newAppointment.service_code] && (
+                                <div className={styles.serviceInfo}>
+                                    {availableServices[newAppointment.service_code].blocks.map((block, index) => (
+                                        block.type === 'service' && (
+                                            <span key={index} className={styles.serviceBlock}>
+                                                {block.label} ({block.duration}min)
+                                            </span>
+                                        )
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
-                        <button type="submit" disabled={loading || !newAppointment.customer_id || (!newAppointment.duration_hours && !newAppointment.duration_minutes)}>
+                        <button type="submit" disabled={loading || !newAppointment.customer_id || !newAppointment.service_code}>
                             {loading ? "Ajout en cours..." : "Ajouter Rendez-vous"}
                         </button>
                     </form>

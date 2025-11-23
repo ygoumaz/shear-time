@@ -70,3 +70,16 @@ export const deleteAppointment = async (id) => {
     return res.json();
 };
 
+export const getServices = async () => {
+    const res = await fetch(`${API_URL}/services`);
+    return res.json();
+};
+
+export const getAvailableServices = async (date) => {
+    const res = await fetch(`${API_URL}/services/available`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date }),
+    });
+    return res.json();
+};

@@ -1,0 +1,33 @@
+{
+  "CPH": {
+    "name": "Coupe Homme",
+    "code": "CPH",
+    "blocks": [
+      {
+        "duration": 30,
+        "type": "service",
+        "label": "Coupe"
+      }
+    ]
+  },
+  "DYE_BRUSH": {
+    "name": "Coloration + Brushing", 
+    "code": "DYE_BRUSH",
+    "blocks": [
+      {
+        "duration": 30,
+        "type": "service",
+        "label": "Coloration"
+      },
+      {
+        "duration": 30,
+        "type": "pause"
+      },
+      {
+        "duration": 30,
+        "type": "service",
+        "label": "Brushing"
+      }
+    ]
+  }
+}

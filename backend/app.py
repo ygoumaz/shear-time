@@ -1,17 +1,23 @@
 from flask import Flask
 from flask_cors import CORS
+from flask_migrate import Migrate
 from models import db
 from config import Config
 from routes import api_blueprint
+import json
+import os
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    db.init_app(app)
+    # Load services configuration
+    services_path = os.path.join(os.path.dirname(__file__), 'services.json')
+    with open(services_path, 'r', encoding='utf-8') as f:
+        app.services = json.load(f)
 
-    with app.app_context():
-        db.create_all()  # Ensures tables exist
+    db.init_app(app)
+    migrate = Migrate(app, db)
 
     CORS(app)  # Enable CORS for all routes
 
