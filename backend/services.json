@@ -1,25 +1,160 @@
 {
-  "CPH": {
+  "CP": {
+    "name": "Coupe Femme",
+    "code": "CP",
+    "color": "#E91E63",
+    "blocks": [
+      {
+        "duration": 30,
+        "type": "service",
+        "label": "Coupe Femme"
+      }
+    ]
+  },
+  "BR": {
+    "name": "Brushing (Solo)",
+    "code": "BR",
+    "color": "#9C27B0",
+    "blocks": [
+      {
+        "duration": 30,
+        "type": "service",
+        "label": "Brushing"
+      }
+    ]
+  },
+  "BRC": {
+    "name": "Brushing (coupe ou technique)",
+    "code": "BRC",
+    "color": "#673AB7",
+    "blocks": [
+      {
+        "duration": 60,
+        "type": "service",
+        "label": "Brushing"
+      }
+    ]
+  },
+  "SOINSC": {
+    "name": "Cellophane",
+    "code": "SOINSC",
+    "color": "#3F51B5",
+    "blocks": [
+      {
+        "duration": 60,
+        "type": "service",
+        "label": "Cellophane"
+      }
+    ]
+  },
+  "CHIGNON": {
+    "name": "Chignon",
+    "code": "CHIGNON",
+    "color": "#2196F3",
+    "blocks": [
+      {
+        "duration": 60,
+        "type": "service",
+        "label": "Chignon"
+      }
+    ]
+  },
+  "CH": {
     "name": "Coupe Homme",
-    "code": "CPH",
+    "code": "CH",
     "color": "#4CAF50",
     "blocks": [
       {
         "duration": 30,
         "type": "service",
-        "label": "Coupe"
+        "label": "Coupe Homme"
       }
     ]
   },
-  "DYE_BRUSH": {
-    "name": "Coloration + Brushing", 
-    "code": "DYE_BRUSH",
+  "SOINSH": {
+    "name": "Coloration/Soins",
+    "code": "SOINSH",
+    "color": "#009688",
+    "blocks": [
+      {
+        "duration": 60,
+        "type": "service",
+        "label": "Coloration/Soins"
+      }
+    ]
+  },
+  "CE": {
+    "name": "Coupe a/s shampooing",
+    "code": "CE",
     "color": "#FF9800",
     "blocks": [
       {
         "duration": 30,
         "type": "service",
-        "label": "Coloration"
+        "label": "Coupe a/s shampooing"
+      }
+    ]
+  },
+  "DYE_BRUSH": {
+    "name": "Teinture + Brushing", 
+    "code": "DYE_BRUSH",
+    "color": "#FF5722",
+    "blocks": [
+      {
+        "duration": 30,
+        "type": "service",
+        "label": "Teinture"
+      },
+      {
+        "duration": 30,
+        "type": "pause"
+      },
+      {
+        "duration": 30,
+        "type": "service",
+        "label": "Brushing"
+      }
+    ]
+  },
+  "MEC_BAL_SOINSP_SOINSC": {
+    "name": "Mèches / Balayage + Soins", 
+    "code": "MEC_BAL_SOINSP_SOINSC",
+    "color": "#795548",
+    "blocks": [
+      {
+        "duration": 60,
+        "type": "service",
+        "label": "Mèches / Balayage"
+      },
+      {
+        "duration": 30,
+        "type": "pause"
+      },
+      {
+        "duration": 30,
+        "type": "service",
+        "label": "Rinçage + Soins"
+      },
+      {
+        "duration": 30,
+        "type": "pause"
+      },
+      {
+        "duration": 30,
+        "type": "service",
+        "label": "Finition"
+      }
+    ]
+  },
+  "MEC_BAL_BR": {
+    "name": "Mèches / Balayage + Brushing", 
+    "code": "MEC_BAL_BR",
+    "color": "#607D8B",
+    "blocks": [
+      {
+        "duration": 60,
+        "type": "service",
+        "label": "Mèches / Balayage"
       },
       {
         "duration": 30,
