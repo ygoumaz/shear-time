@@ -350,14 +350,42 @@ return (
                                 ))}
                             </select>
                             {newAppointment.service_code && availableServices[newAppointment.service_code] && (
-                                <div className={styles.serviceInfo}>
-                                    {availableServices[newAppointment.service_code].blocks.map((block, index) => (
-                                        block.type === 'service' && (
-                                            <span key={index} className={styles.serviceBlock}>
-                                                {block.label} ({block.duration}min)
-                                            </span>
-                                        )
-                                    ))}
+                                <div className={styles.serviceTimeline}>
+                                    <div className={styles.timelineBlocks}>
+                                        {availableServices[newAppointment.service_code].blocks.map((block, index) => (
+                                            <div key={index}>
+                                                <div className={styles.blockItem}>
+                                                    <div className={`${styles.blockCard} ${block.type === 'service' ? styles.serviceBlock : styles.pauseBlock}`}>
+                                                        <div className={styles.blockIcon}>
+                                                            {block.type === 'service' ? '✂️' : '☕'}
+                                                        </div>
+                                                        <div className={styles.blockContent}>
+                                                            <div className={styles.blockLabel}>
+                                                                {block.type === 'service' ? block.label : 'Pause'}
+                                                            </div>
+                                                            <div className={styles.blockDuration}>
+                                                                {block.duration} minutes
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {index < availableServices[newAppointment.service_code].blocks.length - 1 && (
+                                                    <div className={styles.connector}></div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className={styles.timelineSummary}>
+                                        <span className={styles.summaryLabel}>Durée totale:</span>
+                                        <span className={styles.summaryValue}>
+                                            {(() => {
+                                                const total = availableServices[newAppointment.service_code].blocks.reduce((sum, block) => sum + block.duration, 0);
+                                                const hours = Math.floor(total / 60);
+                                                const minutes = total % 60;
+                                                return (hours ? `${hours}h` : '') + (minutes ? ` ${minutes}min` : '');
+                                            })()}
+                                        </span>
+                                    </div>
                                 </div>
                             )}
                         </div>
