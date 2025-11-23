@@ -117,7 +117,7 @@
       }
     ]
   },
-  "MEC_BAL_SOINSP_SOINSC": {
+  "MEC_BAL_SOINS": {
     "name": "Mèches / Balayage + Soins",
     "color": "#795548",
     "blocks": [
