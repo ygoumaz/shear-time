@@ -218,20 +218,9 @@ const Appointments = () => {
     const handleEditEvent = async (info) => {
         const appointmentId = info.event.id;
         const date = info.event.startStr.slice(0, 16);
-        let durationMinutes = (new Date(info.event.end).getTime() - new Date(info.event.start).getTime()) / 60000;
-
-        // Cap appointment end time at 21:00
-        const startDate = new Date(info.event.start);
-        const maxEndDate = new Date(startDate);
-        maxEndDate.setHours(21, 0, 0, 0);
-        const requestedEndDate = new Date(startDate.getTime() + durationMinutes * 60000);
-        if (requestedEndDate > maxEndDate) {
-            durationMinutes = Math.floor((maxEndDate - startDate) / 60000);
-            alert("La durée a été ajustée pour finir au plus tard à 21h.");
-        }
 
         try {
-            await updateAppointment(appointmentId, { date, duration_minutes: durationMinutes });
+            await updateAppointment(appointmentId, { date });
             await fetchAppointments();
         } catch (error) {
             console.error("Error updating appointment:", error);
@@ -252,9 +241,16 @@ return (
                 initialView="timeGridWeek"
                 selectable={true}
                 editable={true} // Allows dragging
+                eventResizableFromStart={false}
+                eventDurationEditable={false}
                 longPressDelay={200}
                 events={appointments.map((a) => {
                     let title = a.customer;
+                    
+                    // Get color from service
+                    const eventColor = a.service_code && services[a.service_code] 
+                        ? services[a.service_code].color 
+                        : '#3788d8'; // Default blue fallback
                     
                     if (a.service_code && services[a.service_code]) {
                         const service = services[a.service_code];
@@ -273,13 +269,14 @@ return (
                         id: a.id,
                         title: title,
                         start: new Date(a.date),
-                        end: new Date(new Date(a.date).getTime() + a.duration_minutes * 60000)
+                        end: new Date(new Date(a.date).getTime() + a.duration_minutes * 60000),
+                        backgroundColor: eventColor,
+                        borderColor: eventColor
                     };
                 })}
                 dateClick={handleDateClick}
                 eventClick={handleEventClick}
                 eventDrop={handleEditEvent}
-                eventResize={handleEditEvent}
                 locale={frLocale}
                 slotMinTime="08:00:00"
                 slotMaxTime="21:00:00"

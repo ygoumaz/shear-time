@@ -142,8 +142,10 @@ def update_appointment(appointment_id):
         return jsonify({"error": "Appointment not found"}), 404
 
     data = request.json
-    appointment.date = datetime.strptime(data['date'], '%Y-%m-%dT%H:%M')
-    appointment.duration_minutes = data['duration_minutes']
+    
+    # Only allow date changes, duration is fixed by the service
+    if 'date' in data:
+        appointment.date = datetime.strptime(data['date'], '%Y-%m-%dT%H:%M')
     
     db.session.commit()
     return jsonify({"message": "Appointment updated!"}), 200

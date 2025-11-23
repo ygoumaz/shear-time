@@ -2,6 +2,7 @@
   "CPH": {
     "name": "Coupe Homme",
     "code": "CPH",
+    "color": "#4CAF50",
     "blocks": [
       {
         "duration": 30,
@@ -13,6 +14,7 @@
   "DYE_BRUSH": {
     "name": "Coloration + Brushing", 
     "code": "DYE_BRUSH",
+    "color": "#FF9800",
     "blocks": [
       {
         "duration": 30,
