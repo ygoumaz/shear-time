@@ -9,11 +9,22 @@
   right: auto !important;
 }
 
+:global(.fc-timegrid-slot) {
+  height: 64px !important;
+}
+
+@media (orientation: landscape) {
+  :global(.fc-timegrid-slot) {
+    height: 43px !important;
+  }
+}
+
 .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 15px 20px;
+    padding: 10px 20px;
+    margin-bottom: 20px;
     background-color: #f8f9fa; /* Light background */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for better visibility */
     position: sticky;
@@ -22,15 +33,15 @@
 }
 
 .pageTitle {
-    font-size: 1.8em;
+    font-size: 1.5em;
     color: #333;
     text-align: center;
     flex-grow: 1;
 }
 
 #customerBtn {
-    margin-top: 10px;
-    padding: 10px;
+    margin-top: 0;
+    padding: 8px 12px;
     border: none;
     border-radius: 5px;
     background-color: #007bff;
