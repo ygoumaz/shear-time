@@ -54,11 +54,10 @@ const Customers = () => {
         setLoading(true);
 
         // Concatenate fields to form the name
-        let fullName = `${newCustomer.prenom}`;
+        let fullName = `${newCustomer.nom} ${newCustomer.prenom}`;
         if (newCustomer.surnom) {
             fullName += ` "${newCustomer.surnom}"`;
         }
-        fullName += ` ${newCustomer.nom}`;
 
         const customerToAdd = {
             name: fullName,
