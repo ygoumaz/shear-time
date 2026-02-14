@@ -22,7 +22,7 @@ const Customers = () => {
     });
     const [editing, setEditing] = useState(null); // { id, field }
     const [tempValue, setTempValue] = useState("");
-
+    const [searchQuery, setSearchQuery] = useState("");
 
     const navigate = useNavigate();
 
@@ -160,6 +160,12 @@ const Customers = () => {
         });
     };
 
+    const filteredCustomers = customers
+        .filter(customer =>
+            customer.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .sort((a, b) => a.name.localeCompare(b.name));
+
     return (
         <div>
             <div className={styles.header}>
@@ -209,6 +215,13 @@ const Customers = () => {
     
                 <div className={styles.rightPanel}>
                     <h2 className={styles.panelTitle}>Liste des clients</h2>
+                    <input
+                        type="text"
+                        placeholder="Rechercher un client..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className={styles.searchInput}
+                    />
                     <table className={styles.customerTable}>
                         <thead>
                             <tr>
@@ -218,8 +231,7 @@ const Customers = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {customers
-                                .sort((a, b) => a.name.localeCompare(b.name))
+                            {filteredCustomers
                                 .map((c) => (
                                     <tr key={c.id} className={styles.customerRow}>
                                         <td onClick={() => handleEdit(c.id, "name", c.name)}>
