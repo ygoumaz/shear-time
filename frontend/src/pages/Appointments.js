@@ -6,11 +6,13 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import frLocale from "@fullcalendar/core/locales/fr";
+import Holidays from 'date-holidays';
 import Modal from "../components/Modal";
 import styles from "./Appointments.module.css";
 
 const Appointments = () => {
     const [appointments, setAppointments] = useState([]);
+    const [holidays, setHolidays] = useState([]);
     const [customers, setCustomers] = useState([]);
     const [services, setServices] = useState({});
     const [availableServices, setAvailableServices] = useState({});
@@ -61,6 +63,30 @@ const Appointments = () => {
                 setAppointments(fetchedAppointments);
                 setCustomers(fetchedCustomers);
                 setServices(fetchedServices);
+
+                // Initialize holidays for Swiss Vaud canton
+                const hd = new Holidays('CH', 'VD');
+                const currentYear = new Date().getFullYear();
+                // Get holidays for current, previous and next year to cover view navigation
+                const years = [currentYear - 1, currentYear, currentYear + 1];
+                let allHolidays = [];
+                
+                years.forEach(year => {
+                    const yearHolidays = hd.getHolidays(year);
+                    const formattedHolidays = yearHolidays.map(h => ({
+                        id: `holiday-${h.date}-${h.name}`,
+                        title: `🏖️ ${h.name}`,
+                        start: h.start, 
+                        end: h.end,
+                        display: 'background',
+                        backgroundColor: '#ffebeb', // Very light red/pink to indicate holiday but not blocking
+                        borderColor: '#ffcccc',
+                        classNames: 'public-holiday'
+                    }));
+                    allHolidays = [...allHolidays, ...formattedHolidays];
+                });
+                setHolidays(allHolidays);
+
             } catch (error) {
                 console.error("Error fetching data:", error);
             } finally {
@@ -169,6 +195,11 @@ const Appointments = () => {
 
     const handleEventClick = async (eventClickInfo) => {
         const appointmentId = eventClickInfo.event.id;
+        // Check if it's a holiday (starts with holiday-)
+        if (String(appointmentId).startsWith('holiday-')) {
+            return;
+        }
+
         const appointment = appointments.find(a => String(a.id) === String(appointmentId));
         if (appointment) {
             const startDate = new Date(appointment.date);
@@ -245,39 +276,42 @@ return (
                 eventResizableFromStart={false}
                 eventDurationEditable={false}
                 longPressDelay={200}
-                events={appointments.map((a) => {
-                    let title = a.customer;
-                    
-                    // Get color from service
-                    const eventColor = a.service_code && services[a.service_code] 
-                        ? services[a.service_code].color 
-                        : '#3788d8'; // Default blue fallback
-                    
-                    if (a.service_code && services[a.service_code]) {
-                        const service = services[a.service_code];
-                        const block = service.blocks[a.block_index];
+                events={[
+                    ...appointments.map((a) => {
+                        let title = a.customer;
                         
-                        if (block && block.code) {
-                            // Use block-specific code
-                            title = `${a.customer} - ${block.code}`;
-                        } else if (block && block.label) {
-                            // Fallback to label if no code available
-                            title = `${a.customer} - ${block.label}`;
-                        } else {
-                            // Fallback to service name if block info not available
-                            title = `${a.customer} - ${service.name}`;
+                        // Get color from service
+                        const eventColor = a.service_code && services[a.service_code] 
+                            ? services[a.service_code].color 
+                            : '#3788d8'; // Default blue fallback
+                        
+                        if (a.service_code && services[a.service_code]) {
+                            const service = services[a.service_code];
+                            const block = service.blocks[a.block_index];
+                            
+                            if (block && block.code) {
+                                // Use block-specific code
+                                title = `${a.customer} - ${block.code}`;
+                            } else if (block && block.label) {
+                                // Fallback to label if no code available
+                                title = `${a.customer} - ${block.label}`;
+                            } else {
+                                // Fallback to service name if block info not available
+                                title = `${a.customer} - ${service.name}`;
+                            }
                         }
-                    }
-                    
-                    return {
-                        id: a.id,
-                        title: title,
-                        start: new Date(a.date),
-                        end: new Date(new Date(a.date).getTime() + a.duration_minutes * 60000),
-                        backgroundColor: eventColor,
-                        borderColor: eventColor
-                    };
-                })}
+                        
+                        return {
+                            id: a.id,
+                            title: title,
+                            start: new Date(a.date),
+                            end: new Date(new Date(a.date).getTime() + a.duration_minutes * 60000),
+                            backgroundColor: eventColor,
+                            borderColor: eventColor
+                        };
+                    }),
+                    ...holidays
+                ]}
                 dateClick={handleDateClick}
                 eventClick={handleEventClick}
                 eventDrop={handleEditEvent}
