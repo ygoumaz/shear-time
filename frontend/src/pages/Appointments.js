@@ -79,8 +79,8 @@ const Appointments = () => {
                         start: h.start, 
                         end: h.end,
                         display: 'background',
-                        backgroundColor: '#ffebeb', // Very light red/pink to indicate holiday but not blocking
-                        borderColor: '#ffcccc',
+                        backgroundColor: '#ffb3b3', // Light red/pink, visible but not too strong
+                        borderColor: '#ff8080',
                         classNames: 'public-holiday'
                     }));
                     allHolidays = [...allHolidays, ...formattedHolidays];
