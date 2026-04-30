@@ -25,8 +25,6 @@ const ConfirmModal = ({ message, onClose, onConfirm, children }) => (
 );
 
 const Modal = ({ type="info", message, onClose, onConfirm, children }) => {
-    console.log (type)
-    console.log (message)
     switch (type) {
         case "confirm":
             return <ConfirmModal message={message} onClose={onClose} onConfirm={onConfirm}>{children}</ConfirmModal>;

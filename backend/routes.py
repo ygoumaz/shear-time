@@ -118,24 +118,22 @@ def create_service_appointment(data):
         
         start_date = datetime.strptime(data['date'], '%Y-%m-%dT%H:%M')
         
-        # Check if service is available for Marie
-        if not is_service_available(service, start_date):
-            return jsonify({"error": "Service not available at this time"}), 400
-        
         # delegated_blocks: list of service-block indices (0 = first service block, etc.) to assign to Chantal
         delegated_blocks = data.get('delegated_blocks', [])
         
-        # Pre-check Chantal availability BEFORE creating any session objects
-        if delegated_blocks:
-            check_time = start_date
-            svc_idx = 0
-            for block in service['blocks']:
-                if block.get('type') == 'service':
-                    if svc_idx in delegated_blocks:
-                        if has_assignee_conflict('chantal', check_time, block['duration']):
-                            return jsonify({"error": "Chantal est déjà occupée sur ce créneau."}), 409
-                    svc_idx += 1
-                check_time += timedelta(minutes=block['duration'])
+        # Pre-check availability for both Marie and Chantal BEFORE creating any session objects
+        check_time = start_date
+        svc_idx = 0
+        for block in service['blocks']:
+            if block.get('type') == 'service':
+                if svc_idx in delegated_blocks:
+                    if has_assignee_conflict('chantal', check_time, block['duration']):
+                        return jsonify({"error": "Chantal est déjà occupée sur ce créneau."}), 409
+                else:
+                    if has_assignee_conflict('marie', check_time, block['duration']):
+                        return jsonify({"error": "Marie est déjà occupée sur ce créneau."}), 409
+                svc_idx += 1
+            check_time += timedelta(minutes=block['duration'])
         
         # Create group ID for multi-block services
         group_id = str(uuid.uuid4()) if len(service['blocks']) > 1 else None
@@ -236,46 +234,51 @@ def delete_appointment(appointment_id):
     db.session.commit()
     return jsonify({"message": "Appointment deleted!"}), 200
 
-# 🛠️ Services API
+# 🔍 Conflict Check API (real-time, before creation)
+@api_blueprint.route('/appointments/conflict-check', methods=['POST'])
+def conflict_check():
+    """Check conflicts for each block of a service before creation."""
+    data = request.json
+    service_code = data.get('service_code')
+    date_str = data.get('date')
+    delegated_blocks = data.get('delegated_blocks', [])
+
+    if not service_code or not date_str:
+        return jsonify({"error": "service_code and date are required"}), 400
+
+    service = current_app.services.get(service_code)
+    if not service:
+        return jsonify({"error": f"Service not found: {service_code}"}), 400
+
+    try:
+        start_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
+    except ValueError:
+        return jsonify({"error": "Invalid date format"}), 400
+
+    results = []
+    check_time = start_date
+    svc_idx = 0
+
+    for block_index, block in enumerate(service.get('blocks', [])):
+        if block.get('type') == 'service':
+            assignee = 'chantal' if svc_idx in delegated_blocks else 'marie'
+            conflict = has_assignee_conflict(assignee, check_time, block['duration'])
+            results.append({
+                "block_index": block_index,
+                "svc_idx": svc_idx,
+                "assignee": assignee,
+                "conflict": conflict,
+                "conflict_with": ('Chantal' if assignee == 'chantal' else 'Marie') if conflict else None
+            })
+            svc_idx += 1
+        check_time += timedelta(minutes=block['duration'])
+
+    return jsonify(results)
+
+
+# ️ Services API
 @api_blueprint.route('/services', methods=['GET'])
 def get_services():
     """Return all available services"""
     return jsonify(current_app.services)
 
-@api_blueprint.route('/services/available', methods=['POST'])
-def check_service_availability():
-    """Check which services are available at a given date/time"""
-    data = request.json
-    # Handle both formats: with and without seconds
-    date_str = data['date']
-    try:
-        requested_date = datetime.fromisoformat(date_str)
-    except ValueError:
-        # Fallback to manual parsing if fromisoformat fails
-        requested_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
-    
-    available_services = {}
-    
-    for service_code, service in current_app.services.items():
-        if is_service_available(service, requested_date):
-            available_services[service_code] = service
-    
-    return jsonify(available_services)
-
-def is_service_available(service, start_time):
-    """Check if a service can fit at the given start time"""
-    current_time = start_time
-    
-    for block in service['blocks']:
-        duration_minutes = block['duration']
-        end_time = current_time + timedelta(minutes=duration_minutes)
-        
-        # For service blocks, check for conflicts
-        if block['type'] == 'service':
-            # Only check Marie's appointments for Marie's availability
-            if has_assignee_conflict('marie', current_time, duration_minutes):
-                return False
-        
-        current_time = end_time
-    
-    return True

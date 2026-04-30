@@ -80,11 +80,12 @@ export const getServices = async () => {
     return res.json();
 };
 
-export const getAvailableServices = async (date) => {
-    const res = await fetch(`${API_URL}/services/available`, {
+export const checkConflicts = async (date, service_code, delegated_blocks) => {
+    const res = await fetch(`${API_URL}/appointments/conflict-check`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date }),
+        body: JSON.stringify({ date, service_code, delegated_blocks }),
     });
     return res.json();
 };
+

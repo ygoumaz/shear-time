@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAppointments, addAppointment, updateAppointment, deleteAppointment, getCustomers, getServices, getAvailableServices, getAssigneeFeasibility } from "../api/api";
+import { getAppointments, addAppointment, updateAppointment, deleteAppointment, getCustomers, getServices, getAssigneeFeasibility, checkConflicts } from "../api/api";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -15,7 +15,6 @@ const Appointments = () => {
     const [holidays, setHolidays] = useState([]);
     const [customers, setCustomers] = useState([]);
     const [services, setServices] = useState({});
-    const [availableServices, setAvailableServices] = useState({});
 
     const [newAppointment, setNewAppointment] = useState({
         customer_id: "",
@@ -38,6 +37,7 @@ const Appointments = () => {
     const [loading, setLoading] = useState(false);
     const [showChantal, setShowChantal] = useState(true);
     const [delegatedBlocks, setDelegatedBlocks] = useState([]);
+    const [blockConflicts, setBlockConflicts] = useState({}); // keyed by svc_idx, per-assignee: { marie: bool, chantal: bool }
     const [modalAssignee, setModalAssignee] = useState(null);
     const [modalFeasibility, setModalFeasibility] = useState({ marie_available: true, chantal_available: true });
     const [modalAppointmentId, setModalAppointmentId] = useState(null);
@@ -128,15 +128,6 @@ const Appointments = () => {
         setShowCustomerDropdown(false);
         setDelegatedBlocks([]);
         
-        // Fetch available services for this date/time
-        try {
-            const available = await getAvailableServices(formattedDate);
-            setAvailableServices(available);
-        } catch (error) {
-            console.error("Error fetching available services:", error);
-            setAvailableServices({});
-        }
-        
         setShowPanel(true);
     }, [showPanel]);
 
@@ -160,6 +151,46 @@ const Appointments = () => {
     }, []);
 
     const panelRef = useRef(null);
+
+    // Real-time conflict detection: fetch availability for Marie AND Chantal independently.
+    // We run two checks: all-Marie (no delegation) and all-Chantal (all svc blocks delegated).
+    // blockConflicts[svc_idx] = { marie: bool, chantal: bool }
+    useEffect(() => {
+        const { service_code, date } = newAppointment;
+        if (!service_code || !date) {
+            setBlockConflicts({});
+            return;
+        }
+        let cancelled = false;
+
+        // Determine total number of service blocks for this service
+        const svcBlocks = services[service_code]?.blocks ?? [];
+        const allSvcIdxs = svcBlocks
+            .map((b, i) => ({ b, i }))
+            .filter(({ b }) => b.type === 'service')
+            .map((_, idx) => idx);
+
+        Promise.all([
+            checkConflicts(date, service_code, []),           // all assigned to Marie
+            checkConflicts(date, service_code, allSvcIdxs)    // all assigned to Chantal
+        ]).then(([marieResults, chantalResults]) => {
+            if (cancelled) return;
+            const map = {};
+            if (Array.isArray(marieResults)) {
+                marieResults.forEach(r => {
+                    map[r.svc_idx] = { ...map[r.svc_idx], marie: r.conflict };
+                });
+            }
+            if (Array.isArray(chantalResults)) {
+                chantalResults.forEach(r => {
+                    map[r.svc_idx] = { ...map[r.svc_idx], chantal: r.conflict };
+                });
+            }
+            setBlockConflicts(map);
+        }).catch(() => { if (!cancelled) setBlockConflicts({}); });
+
+        return () => { cancelled = true; };
+    }, [newAppointment.service_code, newAppointment.date, services]);
 
     // Click outside handler for appointment panel
     useEffect(() => {
@@ -276,15 +307,20 @@ const Appointments = () => {
 return (
         <div className={styles.calendarContainer} style={{ position: "relative" }}>
             <div className={styles.header}>
-                <h1 className={styles.pageTitle}>Calendrier</h1>
                 <label className={styles.chantalToggle}>
-                    <input
-                        type="checkbox"
-                        checked={showChantal}
-                        onChange={(e) => setShowChantal(e.target.checked)}
-                    />
-                    Afficher les tâches de Chantal
+                    <span className={styles.chantalToggleLabel}>Chantal</span>
+                    <span
+                        className={`${styles.chantalToggleTrack} ${showChantal ? styles.chantalToggleTrackOn : ''}`}
+                        onClick={() => setShowChantal(v => !v)}
+                        role="switch"
+                        aria-checked={showChantal}
+                        tabIndex={0}
+                        onKeyDown={e => (e.key === ' ' || e.key === 'Enter') && setShowChantal(v => !v)}
+                    >
+                        <span className={styles.chantalToggleThumb} />
+                    </span>
                 </label>
+                <h1 className={styles.pageTitle}>Calendrier</h1>
                 <button onClick={() => navigate("/customers")} id={styles.customerBtn}>Liste des clients</button>
             </div>
 
@@ -409,55 +445,81 @@ return (
                                 className={styles.serviceSelector}
                             >
                                 <option value="">Choisir un service...</option>
-                                {Object.entries(availableServices).map(([code, service]) => (
+                                {Object.entries(services).map(([code, service]) => (
                                     <option key={code} value={code}>
                                         {service.name}
                                     </option>
                                 ))}
                             </select>
-                            {newAppointment.service_code && availableServices[newAppointment.service_code] && (
+                            {newAppointment.service_code && services[newAppointment.service_code] && (
                                 <div className={styles.serviceTimeline}>
                                     <div className={styles.timelineBlocks}>
-                                        {(() => {
+                                         {(() => {
                                             let svcIdx = 0;
-                                            return availableServices[newAppointment.service_code].blocks.map((block, index) => {
+                                            const blocks = services[newAppointment.service_code].blocks;
+                                            return blocks.map((block, index) => {
                                                 const currentSvcIdx = block.type === 'service' ? svcIdx++ : null;
+                                                const isDelegated = block.type === 'service' && delegatedBlocks.includes(currentSvcIdx);
+                                                const conflictData = block.type === 'service' ? (blockConflicts[currentSvcIdx] ?? {}) : {};
+                                                const marieConflict = conflictData.marie === true;
+                                                const chantalConflict = conflictData.chantal === true;
+                                                const activeConflict = isDelegated ? chantalConflict : marieConflict;
                                                 return (
                                                     <div key={index}>
-                                                        <div className={styles.blockItem}>
-                                                            <div className={`${styles.blockCard} ${block.type === 'service' ? styles.serviceBlock : styles.pauseBlock}`}>
-                                                                <div className={styles.blockIcon}>
-                                                                    {block.type === 'service' ? '✂️' : '☕'}
+                                                        <div className={`${styles.blockCard} ${
+                                                            block.type === 'service'
+                                                                ? styles.serviceBlock
+                                                                : styles.pauseBlock
+                                                        } ${activeConflict ? styles.blockCardConflict : ''}`}>
+                                                            <div className={styles.blockIcon}>
+                                                                {block.type === 'service' ? '✂️' : '☕'}
+                                                            </div>
+                                                            <div className={styles.blockContent}>
+                                                                <div className={styles.blockLabel}>
+                                                                    {block.type === 'service'
+                                                                        ? (block.code ? `${block.label} - ${block.code}` : block.label)
+                                                                        : 'Pause'}
                                                                 </div>
-                                                                <div className={styles.blockContent}>
-                                                                    <div className={styles.blockLabel}>
-                                                                        {block.type === 'service' 
-                                                                            ? (block.code ? `${block.label} - ${block.code}` : block.label)
-                                                                            : 'Pause'}
-                                                                    </div>
-                                                                    <div className={styles.blockDuration}>
-                                                                        {block.duration} minutes
-                                                                    </div>
+                                                                <div className={styles.blockDuration}>
+                                                                    {block.duration} min
                                                                 </div>
                                                             </div>
+                                            {block.type === 'service' && (
+                                                <div className={styles.assignPills}>
+                                                    {/* Marie row */}
+                                                    <div className={styles.assignPillRow}>
+                                                        <button
+                                                            type="button"
+                                                            className={`${styles.assignPill} ${!isDelegated ? styles.assignPillActive : ''}`}
+                                                            disabled={marieConflict}
+                                                            onClick={() => setDelegatedBlocks(prev => prev.filter(i => i !== currentSvcIdx))}
+                                                            title="Assigner à Marie"
+                                                        >
+                                                            Marie
+                                                        </button>
+                                                        <span className={styles.assignPillStatus}>
+                                                            {marieConflict ? '❌' : '✅'}
+                                                        </span>
+                                                    </div>
+                                                    {/* Chantal row */}
+                                                    <div className={styles.assignPillRow}>
+                                                        <button
+                                                            type="button"
+                                                            className={`${styles.assignPill} ${isDelegated ? styles.assignPillActiveChantal : ''}`}
+                                                            disabled={chantalConflict}
+                                                            onClick={() => setDelegatedBlocks(prev => [...new Set([...prev, currentSvcIdx])])}
+                                                            title="Assigner à Chantal"
+                                                        >
+                                                            Chantal
+                                                        </button>
+                                                        <span className={styles.assignPillStatus}>
+                                                            {chantalConflict ? '❌' : '✅'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
                                                         </div>
-                                                        {block.type === 'service' && (
-                                                            <label className={styles.chantalCheckbox}>
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={delegatedBlocks.includes(currentSvcIdx)}
-                                                                    onChange={(e) => {
-                                                                        setDelegatedBlocks(prev =>
-                                                                            e.target.checked
-                                                                                ? [...prev, currentSvcIdx]
-                                                                                : prev.filter(i => i !== currentSvcIdx)
-                                                                        );
-                                                                    }}
-                                                                />
-                                                                Confier à Chantal
-                                                            </label>
-                                                        )}
-                                                        {index < availableServices[newAppointment.service_code].blocks.length - 1 && (
+                                                        {index < blocks.length - 1 && (
                                                             <div className={styles.connector}></div>
                                                         )}
                                                     </div>
@@ -469,7 +531,7 @@ return (
                                         <span className={styles.summaryLabel}>Durée totale:</span>
                                         <span className={styles.summaryValue}>
                                             {(() => {
-                                                const total = availableServices[newAppointment.service_code].blocks.reduce((sum, block) => sum + block.duration, 0);
+                                                const total = services[newAppointment.service_code].blocks.reduce((sum, block) => sum + block.duration, 0);
                                                 const hours = Math.floor(total / 60);
                                                 const minutes = total % 60;
                                                 return (hours ? `${hours}h` : '') + (minutes ? ` ${minutes}min` : '');
@@ -480,7 +542,15 @@ return (
                             )}
                         </div>
 
-                        <button type="submit" disabled={loading || !newAppointment.customer_id || !newAppointment.service_code}>
+                        <button type="submit" disabled={
+                            loading ||
+                            !newAppointment.customer_id ||
+                            !newAppointment.service_code ||
+                            Object.entries(blockConflicts).some(([svcIdx, c]) => {
+                                const delegated = delegatedBlocks.includes(Number(svcIdx));
+                                return delegated ? c.chantal : c.marie;
+                            })
+                        }>
                             {loading ? "Ajout en cours..." : "Ajouter Rendez-vous"}
                         </button>
                     </form>
@@ -489,8 +559,7 @@ return (
                 </>
             )}
             {modal.open && (() => {
-                const appt = modalAppointmentId != null ? appointments.find(a => String(a.id) === String(modalAppointmentId)) : null;
-                const originalAssignee = appt?.assignee || 'marie';
+            const appt = modalAppointmentId != null ? appointments.find(a => String(a.id) === String(modalAppointmentId)) : null;
                 const isDisabled =
                     (modalAssignee === 'marie' && !modalFeasibility.chantal_available) ||
                     (modalAssignee === 'chantal' && !modalFeasibility.marie_available);
@@ -503,25 +572,30 @@ return (
                     >
                         {modalAppointmentId != null && (
                             <div className={styles.reassignSection}>
-                                <label className={styles.chantalCheckbox}>
-                                    <input
-                                        type="checkbox"
-                                        checked={modalAssignee === 'chantal'}
+                                <div className={styles.assignToggleRow}>
+                                    <span className={`${styles.assignLabel} ${modalAssignee !== 'chantal' ? styles.assignLabelActive : ''}`}>Marie</span>
+                                    <button
+                                        type="button"
+                                        className={`${styles.assignToggleTrack} ${modalAssignee === 'chantal' ? styles.assignToggleTrackOn : ''} ${isDisabled ? styles.assignToggleDisabled : ''}`}
                                         disabled={isDisabled}
-                                        onChange={async (e) => {
-                                            const newAssignee = e.target.checked ? 'chantal' : 'marie';
+                                        onClick={async () => {
+                                            if (isDisabled) return;
+                                            const newAssignee = modalAssignee === 'chantal' ? 'marie' : 'chantal';
                                             setModalAssignee(newAssignee);
                                             const result = await updateAppointment(modalAppointmentId, { assignee: newAssignee });
                                             if (result.error) {
-                                                setModalAssignee(e.target.checked ? 'marie' : 'chantal'); // revert
+                                                setModalAssignee(modalAssignee); // revert
                                                 setModal(prev => ({ ...prev, message: prev.message + `<br/><span style="color:red;font-size:0.9em">${result.error}</span>` }));
                                             } else {
                                                 await fetchAppointments();
                                             }
                                         }}
-                                    />
-                                    Confier à Chantal
-                                </label>
+                                        aria-label="Changer l'assignée"
+                                    >
+                                        <span className={styles.assignToggleThumb} />
+                                    </button>
+                                    <span className={`${styles.assignLabel} ${modalAssignee === 'chantal' ? styles.assignLabelActive : ''}`}>Chantal</span>
+                                </div>
                             </div>
                         )}
                     </Modal>

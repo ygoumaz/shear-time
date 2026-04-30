@@ -1,22 +1,35 @@
 # Progress
 
 ## Status
-- **Core Logic**: Partially implemented.
-    - Customer CRUD: Exists.
-    - Appointment CRUD: Exists.
-    - Multi-block logic: Implemented in `routes.py`.
-- **Frontend**: Basic structure present.
-    - Calendar view: Implemented with FullCalendar.
-    - Holidays: Integrated `date-holidays` for Swiss Vaud canton.
-    - Routing: Setup.
-- **Documentation**: Initial memory bank created.
+- **Core Logic**: Fully implemented.
+    - Customer CRUD: Complete.
+    - Appointment CRUD: Complete.
+    - Multi-block scheduling: Complete.
+    - Chantal delegation: Complete (assignee per block, conflict checks, reassignment).
+- **Frontend**: Feature-complete.
+    - Calendar view: FullCalendar with styled header toggle (top-left) for Chantal blocks.
+    - Holidays: Swiss Vaud canton integrated.
+    - Service creation panel: Shows all services; inline Marie/Chantal pills per block with live ✅/❌ availability; conflict = amber border; submit disabled on conflict.
+    - Reassignment modal: Slider toggle with feasibility check, immediate save.
+    - Drag & drop: Removed.
+- **Backend**: Feature-complete.
+    - `has_assignee_conflict`: Per-assignee conflict detection.
+    - Creation: Per-block validation (Marie for her blocks, Chantal for delegated).
+    - PUT reassignment: Bidirectional with conflict check.
+    - Feasibility endpoint: Returns availability for both assignees.
+- **Documentation**: Full delivery spec in `deliveries/001-chantal-delegation/`.
+
+## Completed Deliveries
+- [x] `001-chantal-delegation` — All 14 tasks + 4 post-test fixes (BF-01 to BF-04)
 
 ## Known Issues
-- None explicitly identified yet, but comprehensive testing of multi-block scheduling edge cases is recommended.
+- None currently identified.
 
 ## Roadmap
 - [x] Complete Memory Bank initialization.
 - [x] Integrate public holidays (Vaud) into calendar.
-- [ ] Verify frontend integration with all backend endpoints.
-- [ ] Test multi-block service scheduling thoroughly.
-- [ ] Enhance UI/UX for service selection.
+- [x] Implement Chantal delegation feature.
+- [x] Remove service availability pre-filtering (BF-04).
+- [x] Real-time conflict detection UI in creation panel.
+- [ ] Deploy to Render with migration.
+- [ ] Further user testing and feedback collection.

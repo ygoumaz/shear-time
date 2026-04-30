@@ -80,7 +80,7 @@
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     z-index: 1000;
-    width: 300px;
+    width: 340px;
     max-width: 95vw;
     max-height: 90vh;
     overflow-y: auto;
@@ -148,6 +148,58 @@
 .appointmentPanel button:disabled {
     background-color: #ccc;
     cursor: not-allowed;
+}
+
+/* Override broad button rule for inline assignee pills */
+.appointmentPanel .assignPill {
+    padding: 0 8px;
+    margin: 0;
+    display: flex;
+    height: 26px;
+    min-width: 68px;
+    width: auto;
+    border-radius: 13px;
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.65);
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.appointmentPanel .assignPill:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.28);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.appointmentPanel .assignPill:disabled {
+    background: rgba(255, 255, 255, 0.12);
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.appointmentPanel .assignPillActive {
+    background: rgba(255, 255, 255, 0.92);
+    color: #444;
+    border-color: white;
+    font-weight: 700;
+}
+
+.appointmentPanel .assignPillActive:hover:not(:disabled) {
+    background: white;
+    color: #222;
+}
+
+.appointmentPanel .assignPillActiveChantal {
+    background: rgba(255, 255, 255, 0.92);
+    color: #444;
+    border-color: white;
+    font-weight: 700;
+}
+
+.appointmentPanel .assignPillActiveChantal:hover:not(:disabled) {
+    background: white;
+    color: #222;
 }
 
 .loadingOverlay {
@@ -340,19 +392,6 @@
     justify-content: center;
 }
 
-/* Duration Container - Horizontal Layout */
-.durationContainer {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.durationContainer input {
-    margin: 0;
-}
-
 /* Service Timeline Styles */
 .serviceTimeline {
     margin-top: 15px;
@@ -368,12 +407,6 @@
     flex-direction: column;
     gap: 0;
     margin-bottom: 12px;
-}
-
-.blockItem {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
 }
 
 .blockCard {
@@ -485,49 +518,65 @@
     }
 }
 
-/* Chantal toggle in header */
+/* Chantal toggle in header — styled slider */
 .chantalToggle {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.9em;
-    color: #555;
+    gap: 8px;
     cursor: pointer;
     user-select: none;
+    flex-shrink: 0;
 }
 
-.chantalToggle input {
+.chantalToggleLabel {
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #555;
+    white-space: nowrap;
+}
+
+.chantalToggleTrack {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    border-radius: 11px;
+    background: #c0c0c0;
+    transition: background 0.25s ease;
+    flex-shrink: 0;
+    display: inline-block;
     cursor: pointer;
-    width: 15px;
-    height: 15px;
+    outline: none;
+}
+
+.chantalToggleTrack:focus-visible {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.4);
+}
+
+.chantalToggleTrackOn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.chantalToggleThumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    transition: transform 0.25s ease;
+    display: block;
+    pointer-events: none;
+}
+
+.chantalToggleTrackOn .chantalToggleThumb {
+    transform: translateX(18px);
 }
 
 /* Chantal block opacity in FullCalendar */
 :global(.chantal-block) {
     opacity: 0.55;
-}
-
-/* "Confier à Chantal" checkbox in creation timeline */
-.chantalCheckbox {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.85em;
-    color: #555;
-    cursor: pointer;
-    padding: 4px 8px 4px 12px;
-    user-select: none;
-}
-
-.chantalCheckbox input {
-    cursor: pointer;
-    width: 14px;
-    height: 14px;
-}
-
-.chantalCheckbox input:disabled {
-    cursor: not-allowed;
-    opacity: 0.4;
 }
 
 .reassignSection {
@@ -539,18 +588,166 @@
     gap: 8px;
 }
 
-.saveBtn {
-    align-self: flex-start;
-    padding: 6px 14px;
-    border: none;
-    border-radius: 5px;
-    background-color: #28a745;
-    color: white;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+/* Marie ↔ Chantal slider toggle row */
+.assignToggleRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 8px;
+    margin-bottom: 2px;
 }
 
-.saveBtn:hover {
-    background-color: #1e7e34;
+.assignLabel {
+    font-size: 13px;
+    font-weight: 500;
+    color: #aaa;
+    transition: color 0.2s ease, font-weight 0.2s ease;
+    user-select: none;
+}
+
+.assignLabelActive {
+    color: #333;
+    font-weight: 700;
+}
+
+/* The toggle track (the slider background) */
+.assignToggleTrack {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    background: #c0c0c0;
+    border: none;
+    cursor: pointer;
+    transition: background 0.25s ease;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+/* Specificity fix: .appointmentPanel button rule would override the toggle; reset it here */
+.appointmentPanel .assignToggleTrack {
+    background: #c0c0c0;
+}
+
+.assignToggleTrack:hover {
+    background: #aaa;
+}
+
+.assignToggleTrackOn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.assignToggleTrackOn:hover {
+    background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+}
+
+/* Disabled state */
+.assignToggleDisabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.assignToggleDisabled:hover {
+    background: #c0c0c0;
+}
+
+/* The circular thumb that slides */
+.assignToggleThumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    transition: transform 0.25s ease;
+    display: block;
+}
+
+.assignToggleTrackOn .assignToggleThumb {
+    transform: translateX(20px);
+}
+
+/* Inline assignee pills — vertical stack inside block card */
+.assignPills {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+/* Each pill row: [button] [status emoji] */
+.assignPillRow {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.assignPillStatus {
+    font-size: 14px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.assignPill {
+    height: 26px;
+    min-width: 68px;
+    border-radius: 13px;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.assignPill:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.28);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.assignPill:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* Active Marie pill — solid white fill */
+.assignPillActive {
+    background: rgba(255, 255, 255, 0.92);
+    color: #444;
+    border-color: white;
+    font-weight: 700;
+}
+
+.assignPillActive:hover:not(:disabled) {
+    background: white;
+    color: #222;
+}
+
+/* Active Chantal pill — white fill (same as Marie) */
+.assignPillActiveChantal {
+    background: rgba(255, 255, 255, 0.92);
+    color: #444;
+    border-color: white;
+    font-weight: 700;
+}
+
+.assignPillActiveChantal:hover:not(:disabled) {
+    background: white;
+    color: #222;
+}
+
+/* Conflict indicator: amber left border on the block card */
+.blockCardConflict {
+    border-left: 4px solid #ffc107 !important;
 }
