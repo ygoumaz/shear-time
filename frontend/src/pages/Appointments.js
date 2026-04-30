@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAppointments, addAppointment, updateAppointment, deleteAppointment, getCustomers, getServices, getAvailableServices } from "../api/api";
+import { getAppointments, addAppointment, updateAppointment, deleteAppointment, getCustomers, getServices, getAvailableServices, getAssigneeFeasibility } from "../api/api";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -36,6 +36,11 @@ const Appointments = () => {
         onConfirm: null
     });
     const [loading, setLoading] = useState(false);
+    const [showChantal, setShowChantal] = useState(true);
+    const [delegatedBlocks, setDelegatedBlocks] = useState([]);
+    const [modalAssignee, setModalAssignee] = useState(null);
+    const [modalFeasibility, setModalFeasibility] = useState({ marie_available: true, chantal_available: true });
+    const [modalAppointmentId, setModalAppointmentId] = useState(null);
 
     const navigate = useNavigate();
 
@@ -121,6 +126,7 @@ const Appointments = () => {
         setSelectedDate(formattedDate);
         setSearchQuery("");
         setShowCustomerDropdown(false);
+        setDelegatedBlocks([]);
         
         // Fetch available services for this date/time
         try {
@@ -159,7 +165,13 @@ const Appointments = () => {
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (panelRef.current && !panelRef.current.contains(event.target)) {
-                setShowPanel(false);
+                // Don't close the panel if a modal is open
+                setShowPanel(prev => {
+                    if (!prev) return prev;
+                    const modalEl = document.querySelector('[class*="modalOverlay"]');
+                    if (modalEl) return prev;
+                    return false;
+                });
             }
         };
         
@@ -181,13 +193,18 @@ const Appointments = () => {
 
         setLoading(true);
         try {
-            await addAppointment({ customer_id, date, service_code });
+            const result = await addAppointment({ customer_id, date, service_code, delegated_blocks: delegatedBlocks });
+            if (result.error) {
+                setModal({ open: true, type: "info", message: result.error, onConfirm: null });
+                return;
+            }
             await fetchAppointments();
             setNewAppointment({ customer_id: "", date: "", service_code: "" });
+            setDelegatedBlocks([]);
             setShowPanel(false);
         } catch (error) {
             console.error("Failed to add appointment:", error);
-            alert("Erreur lors de l'ajout du rendez-vous.");
+            setModal({ open: true, type: "info", message: "Erreur lors de l'ajout du rendez-vous.", onConfirm: null });
         } finally {
             setLoading(false);
         }
@@ -202,6 +219,15 @@ const Appointments = () => {
 
         const appointment = appointments.find(a => String(a.id) === String(appointmentId));
         if (appointment) {
+            try {
+                const feasibility = await getAssigneeFeasibility(appointmentId);
+                setModalFeasibility(feasibility);
+            } catch {
+                setModalFeasibility({ marie_available: true, chantal_available: true });
+            }
+            setModalAssignee(appointment.assignee || 'marie');
+            setModalAppointmentId(appointmentId);
+
             const startDate = new Date(appointment.date);
             const endDate = new Date(startDate.getTime() + appointment.duration_minutes * 60000);
             const dateStr = startDate.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -233,6 +259,7 @@ const Appointments = () => {
                 message,
                 onConfirm: async () => {
                     setModal({ open: false, message: "", onConfirm: null });
+                    setModalAppointmentId(null);
                     setAppointments((prev) => prev.filter((c) => c.id !== appointmentId));
                     try {
                         await deleteAppointment(appointmentId);
@@ -246,24 +273,18 @@ const Appointments = () => {
         }
     };
 
-    const handleEditEvent = async (info) => {
-        const appointmentId = info.event.id;
-        const date = info.event.startStr.slice(0, 16);
-
-        try {
-            await updateAppointment(appointmentId, { date });
-            await fetchAppointments();
-        } catch (error) {
-            console.error("Error updating appointment:", error);
-            alert("Erreur lors de la mise à jour du rendez-vous.");
-            info.revert(); // Revert event if update fails 
-        }
-    }
-
 return (
         <div className={styles.calendarContainer} style={{ position: "relative" }}>
             <div className={styles.header}>
                 <h1 className={styles.pageTitle}>Calendrier</h1>
+                <label className={styles.chantalToggle}>
+                    <input
+                        type="checkbox"
+                        checked={showChantal}
+                        onChange={(e) => setShowChantal(e.target.checked)}
+                    />
+                    Afficher les tâches de Chantal
+                </label>
                 <button onClick={() => navigate("/customers")} id={styles.customerBtn}>Liste des clients</button>
             </div>
 
@@ -272,13 +293,16 @@ return (
                 initialView="timeGridWeek"
                 displayEventTime={false}
                 selectable={true}
-                editable={true} // Allows dragging
+                editable={false}
                 eventResizableFromStart={false}
                 eventDurationEditable={false}
                 longPressDelay={200}
                 events={[
-                    ...appointments.map((a) => {
+                    ...appointments
+                        .filter(a => showChantal || a.assignee !== 'chantal')
+                        .map((a) => {
                         let title = a.customer;
+                        const isChantal = a.assignee === 'chantal';
                         
                         // Get color from service
                         const eventColor = a.service_code && services[a.service_code] 
@@ -300,6 +324,10 @@ return (
                                 title = `${a.customer} - ${service.name}`;
                             }
                         }
+
+                        if (isChantal) {
+                            title = `Chantal — ${title}`;
+                        }
                         
                         return {
                             id: a.id,
@@ -307,14 +335,14 @@ return (
                             start: new Date(a.date),
                             end: new Date(new Date(a.date).getTime() + a.duration_minutes * 60000),
                             backgroundColor: eventColor,
-                            borderColor: eventColor
+                            borderColor: eventColor,
+                            classNames: isChantal ? ['chantal-block'] : []
                         };
                     }),
                     ...holidays
                 ]}
                 dateClick={handleDateClick}
                 eventClick={handleEventClick}
-                eventDrop={handleEditEvent}
                 locale={frLocale}
                 slotMinTime="08:00:00"
                 slotMaxTime="21:00:00"
@@ -371,10 +399,13 @@ return (
                         <div className={styles.serviceContainer}>
                             <select
                                 value={newAppointment.service_code}
-                                onChange={(e) => setNewAppointment({
-                                    ...newAppointment,
-                                    service_code: e.target.value
-                                })}
+                                onChange={(e) => {
+                                    setNewAppointment({
+                                        ...newAppointment,
+                                        service_code: e.target.value
+                                    });
+                                    setDelegatedBlocks([]);
+                                }}
                                 className={styles.serviceSelector}
                             >
                                 <option value="">Choisir un service...</option>
@@ -387,30 +418,52 @@ return (
                             {newAppointment.service_code && availableServices[newAppointment.service_code] && (
                                 <div className={styles.serviceTimeline}>
                                     <div className={styles.timelineBlocks}>
-                                        {availableServices[newAppointment.service_code].blocks.map((block, index) => (
-                                            <div key={index}>
-                                                <div className={styles.blockItem}>
-                                                    <div className={`${styles.blockCard} ${block.type === 'service' ? styles.serviceBlock : styles.pauseBlock}`}>
-                                                        <div className={styles.blockIcon}>
-                                                            {block.type === 'service' ? '✂️' : '☕'}
-                                                        </div>
-                                                        <div className={styles.blockContent}>
-                                                            <div className={styles.blockLabel}>
-                                                                {block.type === 'service' 
-                                                                    ? (block.code ? `${block.label} - ${block.code}` : block.label)
-                                                                    : 'Pause'}
+                                        {(() => {
+                                            let svcIdx = 0;
+                                            return availableServices[newAppointment.service_code].blocks.map((block, index) => {
+                                                const currentSvcIdx = block.type === 'service' ? svcIdx++ : null;
+                                                return (
+                                                    <div key={index}>
+                                                        <div className={styles.blockItem}>
+                                                            <div className={`${styles.blockCard} ${block.type === 'service' ? styles.serviceBlock : styles.pauseBlock}`}>
+                                                                <div className={styles.blockIcon}>
+                                                                    {block.type === 'service' ? '✂️' : '☕'}
+                                                                </div>
+                                                                <div className={styles.blockContent}>
+                                                                    <div className={styles.blockLabel}>
+                                                                        {block.type === 'service' 
+                                                                            ? (block.code ? `${block.label} - ${block.code}` : block.label)
+                                                                            : 'Pause'}
+                                                                    </div>
+                                                                    <div className={styles.blockDuration}>
+                                                                        {block.duration} minutes
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                            <div className={styles.blockDuration}>
-                                                                {block.duration} minutes
-                                                            </div>
                                                         </div>
+                                                        {block.type === 'service' && (
+                                                            <label className={styles.chantalCheckbox}>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={delegatedBlocks.includes(currentSvcIdx)}
+                                                                    onChange={(e) => {
+                                                                        setDelegatedBlocks(prev =>
+                                                                            e.target.checked
+                                                                                ? [...prev, currentSvcIdx]
+                                                                                : prev.filter(i => i !== currentSvcIdx)
+                                                                        );
+                                                                    }}
+                                                                />
+                                                                Confier à Chantal
+                                                            </label>
+                                                        )}
+                                                        {index < availableServices[newAppointment.service_code].blocks.length - 1 && (
+                                                            <div className={styles.connector}></div>
+                                                        )}
                                                     </div>
-                                                </div>
-                                                {index < availableServices[newAppointment.service_code].blocks.length - 1 && (
-                                                    <div className={styles.connector}></div>
-                                                )}
-                                            </div>
-                                        ))}
+                                                );
+                                            });
+                                        })()}
                                     </div>
                                     <div className={styles.timelineSummary}>
                                         <span className={styles.summaryLabel}>Durée totale:</span>
@@ -435,7 +488,45 @@ return (
                     </div>
                 </>
             )}
-            {modal.open && <Modal type={modal.type} message={modal.message} onClose={() => setModal({ open: false, message: "", onConfirm: null })} onConfirm={modal.onConfirm} />}
+            {modal.open && (() => {
+                const appt = modalAppointmentId != null ? appointments.find(a => String(a.id) === String(modalAppointmentId)) : null;
+                const originalAssignee = appt?.assignee || 'marie';
+                const isDisabled =
+                    (modalAssignee === 'marie' && !modalFeasibility.chantal_available) ||
+                    (modalAssignee === 'chantal' && !modalFeasibility.marie_available);
+                return (
+                    <Modal
+                        type={modal.type}
+                        message={modal.message}
+                        onClose={() => { setModal({ open: false, message: "", onConfirm: null }); setModalAppointmentId(null); }}
+                        onConfirm={modal.onConfirm}
+                    >
+                        {modalAppointmentId != null && (
+                            <div className={styles.reassignSection}>
+                                <label className={styles.chantalCheckbox}>
+                                    <input
+                                        type="checkbox"
+                                        checked={modalAssignee === 'chantal'}
+                                        disabled={isDisabled}
+                                        onChange={async (e) => {
+                                            const newAssignee = e.target.checked ? 'chantal' : 'marie';
+                                            setModalAssignee(newAssignee);
+                                            const result = await updateAppointment(modalAppointmentId, { assignee: newAssignee });
+                                            if (result.error) {
+                                                setModalAssignee(e.target.checked ? 'marie' : 'chantal'); // revert
+                                                setModal(prev => ({ ...prev, message: prev.message + `<br/><span style="color:red;font-size:0.9em">${result.error}</span>` }));
+                                            } else {
+                                                await fetchAppointments();
+                                            }
+                                        }}
+                                    />
+                                    Confier à Chantal
+                                </label>
+                            </div>
+                        )}
+                    </Modal>
+                );
+            })()}
             {loading && (
                 <div className={styles.loadingOverlay}>
                     <div className={styles.loader}></div>

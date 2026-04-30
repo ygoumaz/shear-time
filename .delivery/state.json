@@ -3,8 +3,8 @@
   "track_id": "001",
   "track_slug": "chantal-delegation",
   "title": "Délégation de tâches à Chantal",
-  "current_stage": "review",
-  "approved_stages": ["charter", "define", "clarify", "plan", "tasks"],
-  "next_stage": "implement",
+  "current_stage": "implement",
+  "approved_stages": ["charter", "define", "clarify", "plan", "tasks", "review"],
+  "next_stage": null,
   "artifact_root": "deliveries/001-chantal-delegation"
 }

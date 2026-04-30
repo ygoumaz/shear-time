@@ -70,6 +70,11 @@ export const deleteAppointment = async (id) => {
     return res.json();
 };
 
+export const getAssigneeFeasibility = async (id) => {
+    const res = await fetch(`${API_URL}/appointments/${id}/assignee-feasibility`);
+    return res.json();
+};
+
 export const getServices = async () => {
     const res = await fetch(`${API_URL}/services`);
     return res.json();

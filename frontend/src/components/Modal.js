@@ -11,10 +11,11 @@ const InfoModal = ({ message, onClose }) => (
     </div>
 );
 
-const ConfirmModal = ({ message, onClose, onConfirm }) => (
+const ConfirmModal = ({ message, onClose, onConfirm, children }) => (
     <div className={styles.modalOverlay}>
         <div className={styles.modalContent}>
         <div dangerouslySetInnerHTML={{ __html: message }} />
+        {children}
             <div className={styles.modalButtons}>
                 <button onClick={onConfirm} className={styles.confirmBtn}>Supprimer</button>
                 <button onClick={onClose} className={styles.closeBtn}>Fermer</button>
@@ -23,12 +24,12 @@ const ConfirmModal = ({ message, onClose, onConfirm }) => (
     </div>
 );
 
-const Modal = ({ type="info", message, onClose, onConfirm }) => {
+const Modal = ({ type="info", message, onClose, onConfirm, children }) => {
     console.log (type)
     console.log (message)
     switch (type) {
         case "confirm":
-            return <ConfirmModal message={message} onClose={onClose} onConfirm={onConfirm} />;
+            return <ConfirmModal message={message} onClose={onClose} onConfirm={onConfirm}>{children}</ConfirmModal>;
         case "info":
         default:
             return <InfoModal message={message} onClose={onClose} />;

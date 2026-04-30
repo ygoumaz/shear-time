@@ -484,3 +484,73 @@
         font-size: 12px;
     }
 }
+
+/* Chantal toggle in header */
+.chantalToggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9em;
+    color: #555;
+    cursor: pointer;
+    user-select: none;
+}
+
+.chantalToggle input {
+    cursor: pointer;
+    width: 15px;
+    height: 15px;
+}
+
+/* Chantal block opacity in FullCalendar */
+:global(.chantal-block) {
+    opacity: 0.55;
+}
+
+/* "Confier à Chantal" checkbox in creation timeline */
+.chantalCheckbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85em;
+    color: #555;
+    cursor: pointer;
+    padding: 4px 8px 4px 12px;
+    user-select: none;
+}
+
+.chantalCheckbox input {
+    cursor: pointer;
+    width: 14px;
+    height: 14px;
+}
+
+.chantalCheckbox input:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.reassignSection {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.saveBtn {
+    align-self: flex-start;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 5px;
+    background-color: #28a745;
+    color: white;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.saveBtn:hover {
+    background-color: #1e7e34;
+}

@@ -82,10 +82,24 @@ def appointments():
             "duration_minutes": a.duration_minutes,
             "service_code": a.service_code,
             "group_id": a.group_id,
-            "block_index": a.block_index
+            "block_index": a.block_index,
+            "assignee": a.assignee
         }
         for a in all_appointments
     ])
+
+def has_assignee_conflict(assignee, start_time, duration_minutes, exclude_id=None):
+    """Check if the given assignee has a conflicting appointment at start_time."""
+    q = Appointment.query.filter_by(assignee=assignee)
+    if exclude_id:
+        q = q.filter(Appointment.id != exclude_id)
+    end_time = start_time + timedelta(minutes=duration_minutes)
+    for appt in q.all():
+        appt_end = appt.date + timedelta(minutes=appt.duration_minutes)
+        if appt.date < end_time and appt_end > start_time:
+            return True
+    return False
+
 
 def create_service_appointment(data):
     """Create appointments for a service with potentially multiple blocks"""
@@ -104,29 +118,48 @@ def create_service_appointment(data):
         
         start_date = datetime.strptime(data['date'], '%Y-%m-%dT%H:%M')
         
-        # Check if service is available
+        # Check if service is available for Marie
         if not is_service_available(service, start_date):
             return jsonify({"error": "Service not available at this time"}), 400
+        
+        # delegated_blocks: list of service-block indices (0 = first service block, etc.) to assign to Chantal
+        delegated_blocks = data.get('delegated_blocks', [])
+        
+        # Pre-check Chantal availability BEFORE creating any session objects
+        if delegated_blocks:
+            check_time = start_date
+            svc_idx = 0
+            for block in service['blocks']:
+                if block.get('type') == 'service':
+                    if svc_idx in delegated_blocks:
+                        if has_assignee_conflict('chantal', check_time, block['duration']):
+                            return jsonify({"error": "Chantal est déjà occupée sur ce créneau."}), 409
+                    svc_idx += 1
+                check_time += timedelta(minutes=block['duration'])
         
         # Create group ID for multi-block services
         group_id = str(uuid.uuid4()) if len(service['blocks']) > 1 else None
         
         current_time = start_date
         appointments_created = []
+        service_block_index = 0
         
         for block_index, block in enumerate(service['blocks']):
             # Only create appointments for service blocks, not pauses
             if block.get('type') == 'service':
+                assignee = 'chantal' if service_block_index in delegated_blocks else 'marie'
                 appointment = Appointment(
                     customer_id=data['customer_id'],
                     date=current_time,
                     duration_minutes=block['duration'],
                     service_code=service_code,
                     group_id=group_id,
-                    block_index=block_index
+                    block_index=block_index,
+                    assignee=assignee
                 )
                 db.session.add(appointment)
                 appointments_created.append(appointment)
+                service_block_index += 1
             
             # Move to next block time (including pauses)
             current_time += timedelta(minutes=block['duration'])
@@ -162,8 +195,27 @@ def update_appointment(appointment_id):
     if 'date' in data:
         appointment.date = datetime.strptime(data['date'], '%Y-%m-%dT%H:%M')
     
+    if 'assignee' in data:
+        new_assignee = data['assignee']
+        if new_assignee not in ('marie', 'chantal'):
+            return jsonify({"error": "Valeur assignee invalide."}), 400
+        if has_assignee_conflict(new_assignee, appointment.date, appointment.duration_minutes, exclude_id=appointment.id):
+            name = 'Chantal' if new_assignee == 'chantal' else 'Marie'
+            return jsonify({"error": f"{name} est déjà occupée sur ce créneau."}), 409
+        appointment.assignee = new_assignee
+    
     db.session.commit()
     return jsonify({"message": "Appointment updated!"}), 200
+
+
+@api_blueprint.route('/appointments/<int:appointment_id>/assignee-feasibility', methods=['GET'])
+def assignee_feasibility(appointment_id):
+    appointment = Appointment.query.get(appointment_id)
+    if not appointment:
+        return jsonify({"error": "Appointment not found"}), 404
+    marie_available = not has_assignee_conflict('marie', appointment.date, appointment.duration_minutes, exclude_id=appointment_id)
+    chantal_available = not has_assignee_conflict('chantal', appointment.date, appointment.duration_minutes, exclude_id=appointment_id)
+    return jsonify({"marie_available": marie_available, "chantal_available": chantal_available})
 
 
 # ❌ DELETE an appointment
@@ -220,15 +272,9 @@ def is_service_available(service, start_time):
         
         # For service blocks, check for conflicts
         if block['type'] == 'service':
-            # Get all appointments and check for time conflicts in Python
-            # This is more reliable across different database backends (SQLite, PostgreSQL, etc.)
-            all_appointments = Appointment.query.all()
-            
-            for appt in all_appointments:
-                appt_end_time = appt.date + timedelta(minutes=appt.duration_minutes)
-                # Check if appointments overlap
-                if appt.date < end_time and appt_end_time > current_time:
-                    return False
+            # Only check Marie's appointments for Marie's availability
+            if has_assignee_conflict('marie', current_time, duration_minutes):
+                return False
         
         current_time = end_time
     

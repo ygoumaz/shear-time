@@ -168,7 +168,8 @@ Réassignation
 
 ## 6. Ordre de livraison conseillé
 
-1. Migration DB + modèle
+1. Modèle `Appointment` (champ `assignee`)
+2. Migration DB (générée depuis le modèle modifié)
 2. Backend : sérialisation GET + disponibilité Marie
 3. Backend : création avec `delegated_blocks` + vérif Chantal
 4. Backend : PUT réassignation bidirectionnel + endpoint feasibility
