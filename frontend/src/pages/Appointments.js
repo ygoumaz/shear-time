@@ -190,7 +190,7 @@ const Appointments = () => {
         }).catch(() => { if (!cancelled) setBlockConflicts({}); });
 
         return () => { cancelled = true; };
-    }, [newAppointment.service_code, newAppointment.date, services]);
+    }, [newAppointment.service_code, newAppointment.date, newAppointment, services]);
 
     // Click outside handler for appointment panel
     useEffect(() => {
@@ -559,7 +559,6 @@ return (
                 </>
             )}
             {modal.open && (() => {
-            const appt = modalAppointmentId != null ? appointments.find(a => String(a.id) === String(modalAppointmentId)) : null;
                 const isDisabled =
                     (modalAssignee === 'marie' && !modalFeasibility.chantal_available) ||
                     (modalAssignee === 'chantal' && !modalFeasibility.marie_available);
