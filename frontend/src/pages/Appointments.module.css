@@ -381,6 +381,12 @@
     border-bottom: none;
 }
 
+.customerItemPhone {
+    color: #888;
+    font-size: 0.85em;
+    margin-left: 2px;
+}
+
 .noResults {
     padding: 12px;
     color: #999;

@@ -12,6 +12,8 @@
     - Service creation panel: Shows all services; inline Marie/Chantal pills per block with live ✅/❌ availability; conflict = amber border; submit disabled on conflict.
     - Reassignment modal: Slider toggle with feasibility check, immediate save.
     - Drag & drop: Removed.
+    - Customer search by name **and phone number** in both Customers page and new appointment dropdown.
+    - Appointment dropdown shows customer phone alongside name.
 - **Backend**: Feature-complete.
     - `has_assignee_conflict`: Per-assignee conflict detection.
     - Creation: Per-block validation (Marie for her blocks, Chantal for delegated).

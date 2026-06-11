@@ -20,6 +20,9 @@ The project has completed the **Chantal Delegation** feature (delivery `001-chan
 - **Header toggle (UI-10):**
   - "Afficher les tâches de Chantal" native checkbox replaced with a styled CSS slider matching the app theme (indigo/purple gradient when active).
   - Moved to the **top-left** of the header (before the "Calendrier" title). Keyboard accessible (Space/Enter).
+- **Phone number search:**
+  - `filteredCustomers` in both `Customers.js` and `Appointments.js` now matches on `customer.phone` in addition to `customer.name`.
+  - Appointments dropdown shows phone number alongside customer name (`Jean Dupont — 0791234567`) via `.customerItemPhone` CSS class.
 
 ## Architecture Decisions (Real-time Conflict UI)
 - **`/appointments/conflict-check` is read-only**: Reuses `has_assignee_conflict`, never persists. Safe to call on every interaction.

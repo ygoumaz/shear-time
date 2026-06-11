@@ -162,7 +162,8 @@ const Customers = () => {
 
     const filteredCustomers = customers
         .filter(customer =>
-            customer.name.toLowerCase().includes(searchQuery.toLowerCase())
+            customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            customer.phone.includes(searchQuery)
         )
         .sort((a, b) => a.name.localeCompare(b.name));
 

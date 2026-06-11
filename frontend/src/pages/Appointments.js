@@ -134,7 +134,8 @@ const Appointments = () => {
     // Filter customers based on search query
     const filteredCustomers = customers
         .filter(customer => 
-            customer.name.toLowerCase().includes(searchQuery.toLowerCase())
+            customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            customer.phone.includes(searchQuery)
         )
         .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -423,6 +424,7 @@ return (
                                 }}
                                             >
                                                 {customer.name}
+                                                {customer.phone && <span className={styles.customerItemPhone}> — {customer.phone}</span>}
                                             </div>
                                         ))
                                     ) : (
